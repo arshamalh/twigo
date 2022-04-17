@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mrjones/oauth"
 )
 
 const (
-	base_url = "https://api.twitter.com/2"
+	base_url = "https://api.twitter.com/2/"
 )
 
 type Client struct {
@@ -63,27 +64,16 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 	return &Client{nil, consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken, read_only_access, bearer_token_auth}, nil
 }
 
-// func (c *Client) request(method, url string, params map[string]string, body interface{}, user_auth bool) (*Response, error) {
-// 	return nil, nil
-// }
-
-func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
-	url := fmt.Sprintf("%s/users/%s/tweets", base_url, user_id)
-	response, err := c.authorizedClient.Get(url)
-	return response, err
-}
-
-// tweet_id and target_user_id can be string or int
-func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Response, error) {
-	Data := map[string]interface{}{
-		"text": text,
+func (c *Client) request(method, url string, params map[string]interface{}) (*http.Response, error) {
+	if method == "GET" {
+		return c.authorizedClient.Get(base_url+url)
 	}
-	DataPayload, err := json.Marshal(Data)
+	DataPayload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", base_url+"/tweets", bytes.NewBuffer(DataPayload))
+	request, err := http.NewRequest(method, base_url+url, bytes.NewBuffer(DataPayload))
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +85,40 @@ func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Respons
 	return response, err
 }
 
+func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
+	return c.request(
+		"GET", 
+		fmt.Sprintf("users/%s/tweets", user_id), 
+		nil,
+	)
+}
+
+// tweet_id and target_user_id can be string or int
+func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Response, error) {
+	Data := map[string]interface{}{
+		"text": text,
+	}
+	return c.request(
+		"POST",
+		"tweets",
+		Data,
+	)
+}
+
+func (c *Client) Like(tweet_id string, options ...interface{}) (*http.Response, error) {
+	Data := map[string]interface{}{
+		"tweet_id": tweet_id,
+	}
+	user_id := strings.Split(c.accessToken, "-")[0]	
+	url := fmt.Sprintf("users/%s/likes", user_id)
+	return c.request(
+		"POST",
+		url,
+		Data,
+	)
+}
+
 // func (c *Client) GetMe() *Response
-// func (c *Client) Like(tweet_id string, options ...interface{}) *Response
 // func (c *Client) Retweet(tweet_id string, options ...interface{}) *Response
 // func (c *Client) SearchAllTweets(query string, options ...interface{}) *Response
 // func (c *Client) FollowUser(target_user_id string, options ...interface{}) *Response
