@@ -1,16 +1,16 @@
 package twigo
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"time"
 
 	"github.com/mrjones/oauth"
 )
 
 const (
-	base_url = "https://api.twitter.com/2/"
+	base_url = "https://api.twitter.com/2"
 )
 
 type Client struct {
@@ -68,33 +68,41 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 // }
 
 func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
-	response, err := c.authorizedClient.Get(fmt.Sprintf("%s/users/%s/tweets", base_url, user_id))
+	url := fmt.Sprintf("%s/users/%s/tweets", base_url, user_id)
+	response, err := c.authorizedClient.Get(url)
 	return response, err
 }
+
 // tweet_id and target_user_id can be string or int
-func (c *Client) GetMe() *Response
-func (c *Client) CreateTweet(text string, options ...interface{}) (*Response, error) {
-	status := fmt.Sprintf("Test post via the API using Go (http://golang.org/) at %s", time.Now().String())
-
-	response, err := c.authorizedClient.PostForm(
-		"https://api.twitter.com/1.1/statuses/update.json",
-		url.Values{"status": []string{status}})
-
+func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Response, error) {
+	Data := map[string]interface{}{
+		"text": text,
+	}
+	DataPayload, err := json.Marshal(Data)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("%v\n", response)
-	return nil, nil
+	request, err := http.NewRequest("POST", base_url+"/tweets", bytes.NewBuffer(DataPayload))
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	response, err := c.authorizedClient.Do(request)
+
+	return response, err
 }
 
-func (c *Client) Like(tweet_id string, options ...interface{}) *Response
-func (c *Client) Retweet(tweet_id string, options ...interface{}) *Response
-func (c *Client) SearchAllTweets(query string, options ...interface{}) *Response
-func (c *Client) FollowUser(target_user_id string, options ...interface{}) *Response
-func (c *Client) UnfollowUser(target_user_id string, options ...interface{}) *Response
-func (c *Client) Unlike(tweet_id string, options ...interface{}) *Response
-func (c *Client) Unretweet(tweet_id string, options ...interface{}) *Response
+// func (c *Client) GetMe() *Response
+// func (c *Client) Like(tweet_id string, options ...interface{}) *Response
+// func (c *Client) Retweet(tweet_id string, options ...interface{}) *Response
+// func (c *Client) SearchAllTweets(query string, options ...interface{}) *Response
+// func (c *Client) FollowUser(target_user_id string, options ...interface{}) *Response
+// func (c *Client) UnfollowUser(target_user_id string, options ...interface{}) *Response
+// func (c *Client) Unlike(tweet_id string, options ...interface{}) *Response
+// func (c *Client) Unretweet(tweet_id string, options ...interface{}) *Response
 
 // Some wants only bearer
 // Some wants only consumer
