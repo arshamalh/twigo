@@ -109,7 +109,6 @@ func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.
 
 func (c *Client) DeleteTweet(tweet_id string) (*http.Response, error) {
 	route := fmt.Sprintf("tweets/%s", tweet_id)
-
 	return c.delete_request(route)
 }
 
@@ -275,7 +274,7 @@ func (c *Client) FollowUser(target_user_id string, params map[string]interface{}
 	)
 }
 
-func (c *Client) UnfollowUser(target_user_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) UnfollowUser(target_user_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
 	return c.delete_request(route)
 }
@@ -318,6 +317,184 @@ func (c *Client) GetMuted() (*http.Response, error) {
 // func (c *Client) GetSpace(space_id string) (*http.Response, error)
 // func (c *Client) GetSpaceBuyers(space_id string) (*http.Response, error)
 
+// ** List Tweets lookup ** //
+func (c *Client) GetListTweets(list_id string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+		"tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("lists/%s/tweets", list_id)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> Tweet
+}
+
+// ** List follows ** //
+func (c *Client) FollowList(list_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"list_id": list_id,
+	}
+	
+	route := fmt.Sprintf("users/%s/followed_lists", c.userID)
+
+	return c.request(
+		"POST", 
+		route, 
+		data,
+	)
+}
+
+func (c *Client) UnfollowList(list_id string) (*http.Response, error) {
+	route := fmt.Sprintf("users/%s/followed_lists/%s", c.userID, list_id)
+	return c.delete_request(route)
+}
+
+func (c *Client) GetListFollowers(list_id string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+        "tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("lists/%s/followers", list_id)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> User
+}
+
+func (c *Client) GetFollowedLists(params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+		"list.fields", "user.fields",
+	}
+	route := fmt.Sprintf("users/%s/followed_lists", c.userID)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> List
+}
+
+// ** List lookup ** //
+func (c *Client) GetList(list_id string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "list.fields", "user.fields",
+	} 
+	route := fmt.Sprintf("lists/%s", list_id)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> List
+}
+
+func (c *Client) GetOwnedLists(params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+		"list.fields", "user.fields",
+	}
+	route := fmt.Sprintf("users/%s/owned_lists", c.userID)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> List
+}
+
+// ** List members ** //
+func (c *Client) AddListMemeber(list_id, user_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"user_id": user_id,
+	}
+
+	route := fmt.Sprintf("lists/%s/members", list_id)
+
+	return c.request(
+		"POST",
+		route,
+		data,
+	)
+}
+
+func (c *Client) RemoveListMember(list_id, user_id string) (*http.Response, error) {
+	route := fmt.Sprintf("lists/%s/members/%s", list_id, user_id)
+	return c.delete_request(route)
+}
+
+func (c *Client) GetListMembers(list_id string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+		"tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("lists/%s/members", list_id)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> User
+}
+
+func (c *Client) GetListMemberships(params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "pagination_token",
+		"list.fields", "user.fields",
+	}
+	route := fmt.Sprintf("users/%s/list_memberships", c.userID)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> List
+}
+
+// ** Manage Lists ** //
+func (c *Client) CreateList(name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
+	data := map[string]interface{}{
+		"name": name,
+		"description": description,
+		"private": private,
+	}
+
+	route := "lists"
+
+	return c.request(
+		"POST",
+		route,
+		data,
+	)
+}
+
+func (c *Client) UpdateList(list_id string, name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
+	data := map[string]interface{}{
+		"name": name,
+		"description": description,
+		"private": private,
+	}
+
+	route := fmt.Sprintf("lists/%s", list_id)
+
+	return c.request(
+		"PUT",
+		route,
+		data,
+	)
+}
+
+func (c *Client) DeleteList(list_id string) (*http.Response, error) {
+	route := fmt.Sprintf("lists/%s", list_id)
+	return c.delete_request(route)
+}
+
+// ** Pinned Lists ** //
+func (c *Client) PinList(list_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"list_id": list_id,
+	}
+
+	route := fmt.Sprintf("users/%s/pinned_lists", c.userID)
+
+	return c.request(
+		"POST",
+		route,
+		data,
+	)
+}
+
+func (c *Client) UnpinList(list_id string) (*http.Response, error) {
+	route := fmt.Sprintf("users/%s/pinned_lists/%s", c.userID, list_id)
+	return c.delete_request(route)
+}
+
+func (c *Client) GetPinnedLists(params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "list.fields", "user.fields",
+	}
+	route := fmt.Sprintf("users/%s/pinned_lists", c.userID)
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> List
+}
+
 // ** Batch Compliance ** //
 // func (c *Client) GetComplianceJobs(_type string) (*http.Response, error)
 // func (c *Client) GetComplianceJob(id string) (*http.Response, error)
@@ -328,7 +505,6 @@ func (c *Client) GetMuted() (*http.Response, error) {
 
 // func (c *Client) GetMe() *Response
 
-// TODO: separate
 // I don't know when (where) to use oauth 1, and when (where) to use oauth 2
 // Is oauth 2 only using bearer token?
 // Is bearer token readonly?
