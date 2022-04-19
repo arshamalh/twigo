@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 )
 
 const (
-	base_url = "https://api.twitter.com/2/"
+	base_route = "https://api.twitter.com/2/"
 )
 
 type Client struct {
@@ -30,13 +33,14 @@ type Response struct {
 	Meta     interface{}
 }
 
-func (c *Client) request(method, url string, params map[string]interface{}) (*http.Response, error) {
+// ** Requests ** //
+func (c *Client) request(method, route string, params map[string]interface{}) (*http.Response, error) {
 	dataPayload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(method, base_url+url, bytes.NewBuffer(dataPayload))
+	request, err := http.NewRequest(method, base_route+route, bytes.NewBuffer(dataPayload))
 	if err != nil {
 		return nil, err
 	}
@@ -48,21 +52,51 @@ func (c *Client) request(method, url string, params map[string]interface{}) (*ht
 	return response, err
 }
 
-func (c *Client) get_request(url string) (*http.Response, error) {
-	return c.authorizedClient.Get(base_url + url)
+func (c *Client) get_request(route string, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
+	parsedRoute, err := url.Parse(route)
+	if err != nil {
+		return nil, err
+	}
+
+	parameters := url.Values{}
+	for param_name, param_value := range params {
+		if !contains(endpoint_parameters, param_name) {
+			return nil, fmt.Errorf("endpoint parameter '%s' is not supported", param_name)
+		}
+		switch param_valt := param_value.(type) {
+		case int:
+			parameters.Add(param_name, strconv.Itoa(param_valt))
+		case string:
+			parameters.Add(param_name, param_valt)
+		case []string:
+			parameters.Add(param_name, strings.Join(param_valt, ","))
+		// TODO: case for arrays of anything else not only string
+		// TODO: case datetime
+		// 	if param_value.tzinfo is not None:
+		// 		param_value = param_value.astimezone(datetime.timezone.utc)
+		// 	request_params[param_name] = param_value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+		// if param_name is not in the endpoint_parameters, we should warn user, but anyway it's not that much important!
+		// Actually it doesn't cause an error, but maybe user had a typo! so I think it's better to return an error.
+
+		default:
+			fmt.Println(param_name, param_value)
+		}
+
+	}
+	parsedRoute.RawQuery = parameters.Encode()
+	return c.authorizedClient.Get(base_route + route)
 }
 
-func (c *Client) delete_request(url string) (*http.Response, error) {
-	request, err := http.NewRequest("DELETE", base_url+url, nil)
+func (c *Client) delete_request(route string) (*http.Response, error) {
+	request, err := http.NewRequest("DELETE", base_route+route, nil)
 	if err != nil {
 		return nil, err
 	}
 	return c.authorizedClient.Do(request)
 }
 
-
 // ** Manage Tweets ** //
-func (c *Client) CreateTweet(text string, params ...interface{}) (*http.Response, error) {
+func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"text": text,
 	}
@@ -74,9 +108,9 @@ func (c *Client) CreateTweet(text string, params ...interface{}) (*http.Response
 }
 
 func (c *Client) DeleteTweet(tweet_id string) (*http.Response, error) {
-	url := fmt.Sprintf("tweets/%s", tweet_id)
+	route := fmt.Sprintf("tweets/%s", tweet_id)
 
-	return c.delete_request(url)
+	return c.delete_request(route)
 }
 
 // ** Likes ** //
@@ -84,31 +118,32 @@ func (c *Client) Like(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
-	url := fmt.Sprintf("users/%s/likes", c.userID)
+	route := fmt.Sprintf("users/%s/likes", c.userID)
 	return c.request(
 		"POST",
-		url,
+		route,
 		data,
 	)
 }
 
 func (c *Client) Unlike(tweet_id string) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
-	return c.delete_request(url)
+	route := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
+	return c.delete_request(route)
 }
 
-func (c *Client) GetLikingUsers(tweet_id string, params ...interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
-	return c.get_request(url)
+func (c *Client) GetLikingUsers(tweet_id string, params map[string]interface{}) (*http.Response, error) {
+	route := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
+	return c.get_request(route, params, nil)
 }
 
-func (c *Client) GetLikedTweets(user_id string, params ...interface{}) (*http.Response, error) {
-	// endpoint_parameters=(
-	// 	"expansions", "max_results", "media.fields",
-	// 	"pagination_token", "place.fields", "poll.fields",
-	// 	"tweet.fields", "user.fields")
-	url := fmt.Sprintf("users/%s/liked_tweets", user_id)
-	return c.get_request(url)
+func (c *Client) GetLikedTweets(user_id string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "media.fields",
+		"pagination_token", "place.fields", "poll.fields",
+		"tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("users/%s/liked_tweets", user_id)
+	return c.get_request(route, params, endpoint_parameters)
 }
 
 // ** Hide replies ** //
@@ -116,11 +151,11 @@ func (c *Client) HideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"hidden": true,
 	}
-	url := fmt.Sprintf("tweets/%s/hidden", reply_id)
-	
+	route := fmt.Sprintf("tweets/%s/hidden", reply_id)
+
 	return c.request(
 		"PUT",
-		url,
+		route,
 		data,
 	)
 }
@@ -129,50 +164,51 @@ func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"hidden": false,
 	}
-	url := fmt.Sprintf("tweets/%s/hidden", reply_id)
-	
+	route := fmt.Sprintf("tweets/%s/hidden", reply_id)
+
 	return c.request(
 		"PUT",
-		url,
+		route,
 		data,
 	)
 }
 
 // ** Retweets ** //
-func (c *Client) Retweet(tweet_id string, params ...interface{}) (*http.Response, error) {
+func (c *Client) Retweet(tweet_id string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
-	url := fmt.Sprintf("users/%s/retweets", c.userID)
+	route := fmt.Sprintf("users/%s/retweets", c.userID)
 	return c.request(
 		"POST",
-		url,
+		route,
 		data,
 	)
 }
 
-func (c *Client) Unretweet(tweet_id string, params ...interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
-	return c.delete_request(url)
+func (c *Client) Unretweet(tweet_id string, params map[string]interface{}) (*http.Response, error) {
+	route := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
+	return c.delete_request(route)
 }
+
 // func (c *Client) GetRetweeters() (*http.Response, error)
 
 // ** Search tweets ** //
 // func (c *Client) SearchRecentTweets() (*http.Response, error)
-// func (c *Client) SearchAllTweets(query string, params ...interface{}) (*http.Response, error)
+// func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*http.Response, error)
 // func QueryMaker()
 
 // ** Timelines ** //
 func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/tweets", user_id)
+	route := fmt.Sprintf("users/%s/tweets", user_id)
 
-	return c.get_request(url)
+	return c.get_request(route, nil, nil)
 }
 
 func (c *Client) GetUserMentions(user_id string) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/mentions", user_id)
+	route := fmt.Sprintf("users/%s/mentions", user_id)
 
-	return c.get_request(url)
+	return c.get_request(route, nil, nil)
 }
 
 // ** Tweet counts ** //
@@ -188,39 +224,60 @@ func (c *Client) Block(target_user_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
 	}
-	url := fmt.Sprintf("users/%s/blocking", c.userID)
+	route := fmt.Sprintf("users/%s/blocking", c.userID)
 
 	return c.request(
 		"POST",
-		url,
+		route,
 		data,
 	)
 }
 
 func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
-	return c.delete_request(url)
+	route := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
+	return c.delete_request(route)
 }
-// func (c *Client) GetBlocked() (*http.Response, error)
+
+func (c *Client) GetBlocked(params map[string]interface{}) (*http.Response, error) {
+	// Parameters
+	// ----------
+	// expansions : Union[List[str], str]
+	// 	:ref:`expansions_parameter`
+	// max_results : int
+	// 	The maximum number of results to be returned per page. This can be
+	// 	a number between 1 and 1000. By default, each page will return 100
+	// 	results.
+	// pagination_token : str
+	// 	Used to request the next page of results if all results weren't
+	// 	returned with the latest request, or to go back to the previous
+	// 	page of results.
+	// tweet_fields : Union[List[str], str]
+	// 	:ref:`tweet_fields_parameter`
+	// user_fields : Union[List[str], str]
+	// 	:ref:`user_fields_parameter`
+	route := fmt.Sprintf("users/%s/blocking", c.userID)
+
+	return c.get_request(route, params, nil)
+}
 
 // ** Follows ** //
-func (c *Client) FollowUser(target_user_id string, params ...interface{}) (*http.Response, error) {
+func (c *Client) FollowUser(target_user_id string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
 	}
 
-	url := fmt.Sprintf("users/%s/following", c.userID)
+	route := fmt.Sprintf("users/%s/following", c.userID)
 
 	return c.request(
 		"POST",
-		url,
+		route,
 		data,
 	)
 }
 
-func (c *Client) UnfollowUser(target_user_id string, params ...interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
-	return c.delete_request(url)
+func (c *Client) UnfollowUser(target_user_id string, params map[string]interface{}) (*http.Response, error) {
+	route := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
+	return c.delete_request(route)
 }
 
 // func (c *Client) GetUserFollowers(user_id string) (*http.Response, error)
@@ -231,24 +288,24 @@ func (c *Client) Mute(target_user_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
 	}
-	
-	url := fmt.Sprintf("users/%s/muting", c.userID)
+
+	route := fmt.Sprintf("users/%s/muting", c.userID)
 
 	return c.request(
-		"POST", 
-		url, 
+		"POST",
+		route,
 		data,
 	)
 }
 
 func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
-	return c.delete_request(url)
+	route := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
+	return c.delete_request(route)
 }
 
 func (c *Client) GetMuted() (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/muting", c.userID)
-	return c.get_request(url)
+	route := fmt.Sprintf("users/%s/muting", c.userID)
+	return c.get_request(route, nil, nil)
 }
 
 // ** User lookup ** //
