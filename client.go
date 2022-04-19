@@ -40,12 +40,12 @@ func (c *Client) request(method, url string, params map[string]interface{}) (*ht
 		}
 		return c.authorizedClient.Do(request)
 	}
-	DataPayload, err := json.Marshal(params)
+	dataPayload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(method, base_url+url, bytes.NewBuffer(DataPayload))
+	request, err := http.NewRequest(method, base_url+url, bytes.NewBuffer(dataPayload))
 	if err != nil {
 		return nil, err
 	}
@@ -57,83 +57,43 @@ func (c *Client) request(method, url string, params map[string]interface{}) (*ht
 	return response, err
 }
 
-func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
-	return c.request(
-		"GET",
-		fmt.Sprintf("users/%s/tweets", user_id),
-		nil,
-	)
-}
-
+// ** Manage Tweets ** //
 func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Response, error) {
-	Data := map[string]interface{}{
+	data := map[string]interface{}{
 		"text": text,
 	}
 	return c.request(
 		"POST",
 		"tweets",
-		Data,
+		data,
 	)
 }
 
+func (c *Client) DeleteTweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("tweets/%s", tweet_id)
+
+	return c.request(
+		"DELETE",
+		url,
+		nil,
+	)
+}
+
+// ** Likes ** //
 func (c *Client) Like(tweet_id string, options ...interface{}) (*http.Response, error) {
-	Data := map[string]interface{}{
+	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
 	url := fmt.Sprintf("users/%s/likes", c.userID)
 	return c.request(
 		"POST",
 		url,
-		Data,
+		data,
 	)
 }
 
 func (c *Client) Unlike(tweet_id string, options ...interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
-}
-
-func (c *Client) Retweet(tweet_id string, options ...interface{}) (*http.Response, error) {
-	Data := map[string]interface{}{
-		"tweet_id": tweet_id,
-	}
-	url := fmt.Sprintf("users/%s/retweets", c.userID)
-	return c.request(
-		"POST",
-		url,
-		Data,
-	)
-}
-
-func (c *Client) Unretweet(tweet_id string, options ...interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
-}
-
-func (c *Client) FollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
-	Data := map[string]interface{}{
-		"target_user_id": target_user_id,
-	}
-
-	url := fmt.Sprintf("users/%s/following", c.userID)
-
-	return c.request(
-		"POST",
-		url,
-		Data,
-	)
-}
-func (c *Client) UnfollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
-
 	return c.request(
 		"DELETE",
 		url,
@@ -164,11 +124,195 @@ func (c *Client) GetLikedTweets(user_id string, options ...interface{}) (*http.R
 	)
 }
 
+// ** Hide replies ** //
+func (c *Client) HideReply(reply_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"hidden": true,
+	}
+	url := fmt.Sprintf("tweets/%s/hidden", reply_id)
+	
+	return c.request(
+		"PUT",
+		url,
+		data,
+	)
+}
+
+func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"hidden": false,
+	}
+	url := fmt.Sprintf("tweets/%s/hidden", reply_id)
+	
+	return c.request(
+		"PUT",
+		url,
+		data,
+	)
+}
+
+// ** Retweets ** //
+func (c *Client) Retweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+	data := map[string]interface{}{
+		"tweet_id": tweet_id,
+	}
+	url := fmt.Sprintf("users/%s/retweets", c.userID)
+	return c.request(
+		"POST",
+		url,
+		data,
+	)
+}
+
+func (c *Client) Unretweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
+	return c.request(
+		"DELETE",
+		url,
+		nil,
+	)
+}
+// func (c *Client) GetRetweeters() (*http.Response, error)
+
+// ** Search tweets ** //
+// func (c *Client) SearchRecentTweets() (*http.Response, error)
+// func (c *Client) SearchAllTweets(query string, options ...interface{}) (*http.Response, error)
+// func QueryMaker()
+
+// ** Timelines ** //
+func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/tweets", user_id)
+
+	return c.request(
+		"GET",
+		url,
+		nil,
+	)
+}
+
+func (c *Client) GetUserMentions(user_id string) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/mentions", user_id)
+
+	return c.request(
+		"GET",
+		url,
+		nil,
+	)
+}
+
+// ** Tweet counts ** //
+// func (c *Client) GetAllTweetsCount() (*http.Response, error)
+// func (c *Client) GetRecentTweetsCount() (*http.Response, error)
+
+// ** Tweet lookup ** //
+// func (c *Client) GetTweet() (*http.Response, error)
+// func (c *Client) GetTweets() (*http.Response, error)
+
+// ** Blocks ** //
+func (c *Client) Block(target_user_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"target_user_id": target_user_id,
+	}
+	url := fmt.Sprintf("users/%s/blocking", c.userID)
+
+	return c.request(
+		"POST",
+		url,
+		data,
+	)
+}
+
+func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
+	return c.request(
+		"DELETE",
+		url,
+		nil,
+	)
+}
+// func (c *Client) GetBlocked() (*http.Response, error)
+
+// ** Follows ** //
+func (c *Client) FollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
+	data := map[string]interface{}{
+		"target_user_id": target_user_id,
+	}
+
+	url := fmt.Sprintf("users/%s/following", c.userID)
+
+	return c.request(
+		"POST",
+		url,
+		data,
+	)
+}
+
+func (c *Client) UnfollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
+
+	return c.request(
+		"DELETE",
+		url,
+		nil,
+	)
+}
+
+// func (c *Client) GetUserFollowers(user_id string) (*http.Response, error)
+// func (c *Client) GetUserFollowing(user_id string) (*http.Response, error)
+
+// ** Mutes ** //
+func (c *Client) Mute(target_user_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"target_user_id": target_user_id,
+	}
+	
+	url := fmt.Sprintf("users/%s/muting", c.userID)
+
+	return c.request(
+		"POST", 
+		url, 
+		data,
+	)
+}
+
+func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
+
+	return c.request(
+		"DELETE", 
+		url, 
+		nil,
+	)
+}
+
+func (c *Client) GetMuted() (*http.Response, error) {
+	url := fmt.Sprintf("users/%s/muting", c.userID)
+	return c.request(
+		"GET",
+		url,
+		nil,
+	)
+}
+
+// ** User lookup ** //
+// func (c *Client) GetUser(user_id, username string) (*http.Response, error)
+// func (c *Client) GetUsers(user_ids, usernames []string) (*http.Response, error)
+
+// ** Spaces ** //
+// func (c *Client) SearchSpaces(query string) (*http.Response, error)
+// func (c *Client) GetSpaces(space_ids, user_ids []string) (*http.Response, error)
+// func (c *Client) GetSpace(space_id string) (*http.Response, error)
+// func (c *Client) GetSpaceBuyers(space_id string) (*http.Response, error)
+
+// ** Batch Compliance ** //
+// func (c *Client) GetComplianceJobs(_type string) (*http.Response, error)
+// func (c *Client) GetComplianceJob(id string) (*http.Response, error)
+// func (c *Client) CreateComplianceJobs(_type, name, resumable string) (*http.Response, error)
+
 // func tweetResponseParser() {}
 // func userResponseParser(){}
 
 // func (c *Client) GetMe() *Response
-// func (c *Client) SearchAllTweets(query string, options ...interface{}) *Response
 
 // TODO: separate
 // I don't know when (where) to use oauth 1, and when (where) to use oauth 2
