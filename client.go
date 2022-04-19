@@ -238,24 +238,7 @@ func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 }
 
 func (c *Client) GetBlocked(params map[string]interface{}) (*http.Response, error) {
-	// Parameters
-	// ----------
-	// expansions : Union[List[str], str]
-	// 	:ref:`expansions_parameter`
-	// max_results : int
-	// 	The maximum number of results to be returned per page. This can be
-	// 	a number between 1 and 1000. By default, each page will return 100
-	// 	results.
-	// pagination_token : str
-	// 	Used to request the next page of results if all results weren't
-	// 	returned with the latest request, or to go back to the previous
-	// 	page of results.
-	// tweet_fields : Union[List[str], str]
-	// 	:ref:`tweet_fields_parameter`
-	// user_fields : Union[List[str], str]
-	// 	:ref:`user_fields_parameter`
 	route := fmt.Sprintf("users/%s/blocking", c.userID)
-
 	return c.get_request(route, params, nil)
 }
 
@@ -331,7 +314,7 @@ func (c *Client) GetUser(user_id, username string, params map[string]interface{}
 func (c *Client) GetUsers(user_ids, usernames []string, params map[string]interface{}) (*http.Response, error) {
 	var route string
 	endpoint_parameters := []string{
-		"usernames", "ids", "expansions", 
+		"usernames", "ids", "expansions",
 		"tweet.fields", "user.fields",
 	}
 
@@ -373,12 +356,12 @@ func (c *Client) FollowList(list_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"list_id": list_id,
 	}
-	
+
 	route := fmt.Sprintf("users/%s/followed_lists", c.userID)
 
 	return c.request(
-		"POST", 
-		route, 
+		"POST",
+		route,
 		data,
 	)
 }
@@ -391,7 +374,7 @@ func (c *Client) UnfollowList(list_id string) (*http.Response, error) {
 func (c *Client) GetListFollowers(list_id string, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
-        "tweet.fields", "user.fields",
+		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s/followers", list_id)
 	return c.get_request(route, params, endpoint_parameters)
@@ -412,7 +395,7 @@ func (c *Client) GetFollowedLists(params map[string]interface{}) (*http.Response
 func (c *Client) GetList(list_id string, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "list.fields", "user.fields",
-	} 
+	}
 	route := fmt.Sprintf("lists/%s", list_id)
 	return c.get_request(route, params, endpoint_parameters)
 	// returning data type ===> List
@@ -471,9 +454,9 @@ func (c *Client) GetListMemberships(params map[string]interface{}) (*http.Respon
 // ** Manage Lists ** //
 func (c *Client) CreateList(name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
-		"name": name,
+		"name":        name,
 		"description": description,
-		"private": private,
+		"private":     private,
 	}
 
 	route := "lists"
@@ -487,9 +470,9 @@ func (c *Client) CreateList(name string, description string, private bool, param
 
 func (c *Client) UpdateList(list_id string, name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
-		"name": name,
+		"name":        name,
 		"description": description,
-		"private": private,
+		"private":     private,
 	}
 
 	route := fmt.Sprintf("lists/%s", list_id)
