@@ -308,8 +308,48 @@ func (c *Client) GetMuted() (*http.Response, error) {
 }
 
 // ** User lookup ** //
-// func (c *Client) GetUser(user_id, username string) (*http.Response, error)
-// func (c *Client) GetUsers(user_ids, usernames []string) (*http.Response, error)
+func (c *Client) GetUser(user_id, username string, params map[string]interface{}) (*http.Response, error) {
+	var route string
+	endpoint_parameters := []string{
+		"expansions", "tweet.fields", "user.fields",
+	}
+
+	if user_id != "" && username != "" {
+		return nil, fmt.Errorf("expected user_id or username, not both")
+	}
+	if user_id != "" {
+		route = fmt.Sprintf("users/%s", user_id)
+	} else if username != "" {
+		route = fmt.Sprintf("users/by/username/%s", username)
+	} else {
+		return nil, fmt.Errorf("id or username is required")
+	}
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> User
+}
+
+func (c *Client) GetUsers(user_ids, usernames []string, params map[string]interface{}) (*http.Response, error) {
+	var route string
+	endpoint_parameters := []string{
+		"usernames", "ids", "expansions", 
+		"tweet.fields", "user.fields",
+	}
+
+	if user_ids != nil && usernames != nil {
+		return nil, fmt.Errorf("expected user_ids or usernames, not both")
+	}
+	if user_ids != nil {
+		route = "users"
+		params["ids"] = user_ids
+	} else if usernames != nil {
+		route = "users/by"
+		params["usernames"] = usernames
+	} else {
+		return nil, fmt.Errorf("id or username is required")
+	}
+	return c.get_request(route, params, endpoint_parameters)
+	// returning data type ===> User
+}
 
 // ** Spaces ** //
 // func (c *Client) SearchSpaces(query string) (*http.Response, error)
