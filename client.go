@@ -31,15 +31,6 @@ type Response struct {
 }
 
 func (c *Client) request(method, url string, params map[string]interface{}) (*http.Response, error) {
-	if method == "GET" {
-		return c.authorizedClient.Get(base_url + url)
-	} else if method == "DELETE" {
-		request, err := http.NewRequest(method, base_url+url, nil)
-		if err != nil {
-			return nil, err
-		}
-		return c.authorizedClient.Do(request)
-	}
 	dataPayload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
@@ -57,8 +48,21 @@ func (c *Client) request(method, url string, params map[string]interface{}) (*ht
 	return response, err
 }
 
+func (c *Client) get_request(url string) (*http.Response, error) {
+	return c.authorizedClient.Get(base_url + url)
+}
+
+func (c *Client) delete_request(url string) (*http.Response, error) {
+	request, err := http.NewRequest("DELETE", base_url+url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.authorizedClient.Do(request)
+}
+
+
 // ** Manage Tweets ** //
-func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Response, error) {
+func (c *Client) CreateTweet(text string, params ...interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"text": text,
 	}
@@ -69,18 +73,14 @@ func (c *Client) CreateTweet(text string, options ...interface{}) (*http.Respons
 	)
 }
 
-func (c *Client) DeleteTweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) DeleteTweet(tweet_id string) (*http.Response, error) {
 	url := fmt.Sprintf("tweets/%s", tweet_id)
 
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
+	return c.delete_request(url)
 }
 
 // ** Likes ** //
-func (c *Client) Like(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) Like(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
@@ -92,36 +92,23 @@ func (c *Client) Like(tweet_id string, options ...interface{}) (*http.Response, 
 	)
 }
 
-func (c *Client) Unlike(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) Unlike(tweet_id string) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
+	return c.delete_request(url)
 }
 
-func (c *Client) GetLikingUsers(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) GetLikingUsers(tweet_id string, params ...interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
-
-	return c.request(
-		"GET",
-		url,
-		nil,
-	)
+	return c.get_request(url)
 }
 
-func (c *Client) GetLikedTweets(user_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) GetLikedTweets(user_id string, params ...interface{}) (*http.Response, error) {
 	// endpoint_parameters=(
 	// 	"expansions", "max_results", "media.fields",
 	// 	"pagination_token", "place.fields", "poll.fields",
 	// 	"tweet.fields", "user.fields")
 	url := fmt.Sprintf("users/%s/liked_tweets", user_id)
-	return c.request(
-		"GET",
-		url,
-		nil,
-	)
+	return c.get_request(url)
 }
 
 // ** Hide replies ** //
@@ -152,7 +139,7 @@ func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 }
 
 // ** Retweets ** //
-func (c *Client) Retweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) Retweet(tweet_id string, params ...interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
@@ -164,40 +151,28 @@ func (c *Client) Retweet(tweet_id string, options ...interface{}) (*http.Respons
 	)
 }
 
-func (c *Client) Unretweet(tweet_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) Unretweet(tweet_id string, params ...interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
+	return c.delete_request(url)
 }
 // func (c *Client) GetRetweeters() (*http.Response, error)
 
 // ** Search tweets ** //
 // func (c *Client) SearchRecentTweets() (*http.Response, error)
-// func (c *Client) SearchAllTweets(query string, options ...interface{}) (*http.Response, error)
+// func (c *Client) SearchAllTweets(query string, params ...interface{}) (*http.Response, error)
 // func QueryMaker()
 
 // ** Timelines ** //
 func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/tweets", user_id)
 
-	return c.request(
-		"GET",
-		url,
-		nil,
-	)
+	return c.get_request(url)
 }
 
 func (c *Client) GetUserMentions(user_id string) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/mentions", user_id)
 
-	return c.request(
-		"GET",
-		url,
-		nil,
-	)
+	return c.get_request(url)
 }
 
 // ** Tweet counts ** //
@@ -224,16 +199,12 @@ func (c *Client) Block(target_user_id string) (*http.Response, error) {
 
 func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
+	return c.delete_request(url)
 }
 // func (c *Client) GetBlocked() (*http.Response, error)
 
 // ** Follows ** //
-func (c *Client) FollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) FollowUser(target_user_id string, params ...interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
 	}
@@ -247,14 +218,9 @@ func (c *Client) FollowUser(target_user_id string, options ...interface{}) (*htt
 	)
 }
 
-func (c *Client) UnfollowUser(target_user_id string, options ...interface{}) (*http.Response, error) {
+func (c *Client) UnfollowUser(target_user_id string, params ...interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
-
-	return c.request(
-		"DELETE",
-		url,
-		nil,
-	)
+	return c.delete_request(url)
 }
 
 // func (c *Client) GetUserFollowers(user_id string) (*http.Response, error)
@@ -277,21 +243,12 @@ func (c *Client) Mute(target_user_id string) (*http.Response, error) {
 
 func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
-
-	return c.request(
-		"DELETE", 
-		url, 
-		nil,
-	)
+	return c.delete_request(url)
 }
 
 func (c *Client) GetMuted() (*http.Response, error) {
 	url := fmt.Sprintf("users/%s/muting", c.userID)
-	return c.request(
-		"GET",
-		url,
-		nil,
-	)
+	return c.get_request(url)
 }
 
 // ** User lookup ** //
