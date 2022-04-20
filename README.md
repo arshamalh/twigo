@@ -5,6 +5,8 @@
 </p>
 
 Twigo is a fast and easy to use twitter API library help you write best twitter bots.
+Currently we only support twitter api v2, but version 1.1 will be added soon.
+Caution! we are still in Beta phase.
 
 ## installation
 
@@ -106,8 +108,6 @@ client.CreateTweet("This is a test tweet", nil)
 ```
 Simple, right?
 
-## Caution
-We are still in beta phase, we try to be stable, but there may be some little changes.
 ## Contribution
 
 Twigo is free and open to use for anyone, but you can contribute if you like and this means a world for us.
