@@ -104,10 +104,6 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 	return c.authorizedClient.Do(request)
 }
 
-// %%TODO: maybe using map[string]interface{} for params is not a good approach, we can use a predefined struct instead.
-// the second approch will help other developers to understand what's going on and which params to pass.
-// but first approach is more convenient for those who know which params they should pass.
-
 // ** Manage Tweets ** //
 func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
@@ -710,17 +706,5 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, 
 // func (c *Client) GetComplianceJob(id string) (*http.Response, error)
 // func (c *Client) CreateComplianceJobs(_type, name, resumable string) (*http.Response, error)
 
-// func tweetResponseParser() {}
-// func userResponseParser(){}
-
 // func (c *Client) GetMe() *Response
 
-// I don't know when (where) to use oauth 1, and when (where) to use oauth 2
-// Is oauth 2 only using bearer token?
-// Is bearer token readonly?
-// Why tweepy has separated some get routes and is using bearer for them?
-// Why twitter is using bearer for tweeting but once it said that brearer is readonly?
-// Some wants only bearer
-// Some wants only consumer
-// Some (writes) only can use consumer
-// Some (gets) is better to use bearer
