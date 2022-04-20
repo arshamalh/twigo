@@ -4,8 +4,10 @@
   <img src="./twigo.png" alt="twigo logo" width="300">
 </p>
 
-Twigo is a fast and easy to use twitter API library help you write best twitter bots.
+### Twigo is a fast and easy to use twitter API library help you write best twitter bots.
+
 Currently we only support twitter api v2, but version 1.1 will be added soon.
+
 Caution! we are still in Beta phase.
 
 ## installation
