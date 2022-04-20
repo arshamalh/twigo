@@ -33,7 +33,7 @@ twigo.NewClient(
   // TODO: maybe I should remove it and make default to true!?
 )
 ```
-And user any function you need, for example:
+And use any function you need, for example:
 ```go
 response, err := client.GetLikingUsers(
   "1431751228145426438", 
