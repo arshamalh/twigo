@@ -77,11 +77,9 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 		// 	if param_value.tzinfo is not None:
 		// 		param_value = param_value.astimezone(datetime.timezone.utc)
 		// 	request_params[param_name] = param_value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-		// if param_name is not in the endpoint_parameters, we should warn user, but anyway it's not that much important!
-		// Actually it doesn't cause an error, but maybe user had a typo! so I think it's better to return an error.
 
 		default:
-			fmt.Println(param_name, param_value)
+			return nil, fmt.Errorf("%s with value of %s is not supported, please contact us", param_name, param_value)
 		}
 
 	}
@@ -89,6 +87,7 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	fullRoute := base_route + parsedRoute.String()
 	fmt.Println("Route:>> ", fullRoute)
 	if oauth_1a {
+		//%% TODO: Should we define authorizedClient here? or tweepy is doing it wrong?
 		return c.authorizedClient.Get(fullRoute)
 	} else {
 		request, err := http.NewRequest("GET", fullRoute, nil)
@@ -97,10 +96,6 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 		}
 	
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
-		//%% TODO 1: It seems kind of silly! Do we really need to use authorizedClient?
-		// return c.authorizedClient.Do(request)
-
-		//%% TODO 2: We should define client here, not once in initialization, or tweepy is doing it wrong?
 		client := http.Client{}
 		return client.Do(request)
 	}
