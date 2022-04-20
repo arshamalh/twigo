@@ -34,8 +34,6 @@ twigo.NewClient(
 )
 ```
 
-## Contribution & Donation
+## Contribution
 
-Twigo is free and open to use for anyone, but you can donate or contribute if you like and this means a world for us.
-
-donation url: <Not provided yet>
+Twigo is free and open to use for anyone, but you can contribute if you like and this means a world for us.
