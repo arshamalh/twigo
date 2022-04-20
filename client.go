@@ -35,6 +35,7 @@ type Response struct {
 
 // ** Requests ** //
 func (c *Client) request(method, route string, params map[string]interface{}) (*http.Response, error) {
+	// OAuth_1a is always true for post and put routes
 	dataPayload, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,8 @@ func (c *Client) request(method, route string, params map[string]interface{}) (*
 	return response, err
 }
 
-func (c *Client) get_request(route string, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
+func (c *Client) get_request(route string, oauth_1a bool, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
+	// oauth_1a ==> Whether or not to use OAuth 1.0a User context
 	parsedRoute, err := url.Parse(route)
 	if err != nil {
 		return nil, err
@@ -88,6 +90,7 @@ func (c *Client) get_request(route string, params map[string]interface{}, endpoi
 }
 
 func (c *Client) delete_request(route string) (*http.Response, error) {
+	// OAuth_1a is always true for delete routes
 	request, err := http.NewRequest("DELETE", base_route+route, nil)
 	if err != nil {
 		return nil, err
@@ -130,19 +133,26 @@ func (c *Client) Unlike(tweet_id string) (*http.Response, error) {
 	return c.delete_request(route)
 }
 
-func (c *Client) GetLikingUsers(tweet_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+
 	route := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
-	return c.get_request(route, params, nil)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> User
 }
 
-func (c *Client) GetLikedTweets(user_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "media.fields",
 		"pagination_token", "place.fields", "poll.fields",
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/%s/liked_tweets", user_id)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> Tweet
 }
 
 // ** Hide replies ** //
@@ -190,7 +200,15 @@ func (c *Client) Unretweet(tweet_id string, params map[string]interface{}) (*htt
 	return c.delete_request(route)
 }
 
-// func (c *Client) GetRetweeters() (*http.Response, error)
+func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("tweets/%s/retweeted_by", tweet_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> User
+}
 
 // ** Search tweets ** //
 // func (c *Client) SearchRecentTweets() (*http.Response, error)
@@ -198,25 +216,70 @@ func (c *Client) Unretweet(tweet_id string, params map[string]interface{}) (*htt
 // func QueryMaker()
 
 // ** Timelines ** //
-func (c *Client) GetUserTweets(user_id string) (*http.Response, error) {
+func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"end_time", "exclude", "expansions", "max_results",
+		"media.fields", "pagination_token", "place.fields",
+		"poll.fields", "since_id", "start_time", "tweet.fields",
+		"until_id", "user.fields",
+	}
 	route := fmt.Sprintf("users/%s/tweets", user_id)
 
-	return c.get_request(route, nil, nil)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> Tweet
 }
 
-func (c *Client) GetUserMentions(user_id string) (*http.Response, error) {
+func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"end_time", "expansions", "max_results", "media.fields",
+		"pagination_token", "place.fields", "poll.fields", "since_id",
+		"start_time", "tweet.fields", "until_id", "user.fields",
+	}
+
 	route := fmt.Sprintf("users/%s/mentions", user_id)
 
-	return c.get_request(route, nil, nil)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> Tweet
 }
 
 // ** Tweet counts ** //
-// func (c *Client) GetAllTweetsCount() (*http.Response, error)
-// func (c *Client) GetRecentTweetsCount() (*http.Response, error)
+func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"end_time", "granularity", "next_token", "query",
+		"since_id", "start_time", "until_id",
+	}
+	params["query"] = query
+	return c.get_request("tweets/counts/all", false, params, endpoint_parameters)
+}
+func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"end_time", "granularity", "query",
+		"since_id", "start_time", "until_id",
+	}
+	params["query"] = query
+	return c.get_request("tweets/counts/recent", false, params, endpoint_parameters)
+}
 
 // ** Tweet lookup ** //
-// func (c *Client) GetTweet() (*http.Response, error)
-// func (c *Client) GetTweets() (*http.Response, error)
+func (c *Client) GetTweet(tweet_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("tweets/%s", tweet_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> Tweet
+}
+
+func (c *Client) GetTweets(tweet_ids []string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"ids", "expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+	params["ids"] = tweet_ids
+	return c.get_request("tweets", oauth_1a, params, endpoint_parameters)
+	// returning data type ===> Tweet
+}
 
 // ** Blocks ** //
 func (c *Client) Block(target_user_id string) (*http.Response, error) {
@@ -238,8 +301,12 @@ func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 }
 
 func (c *Client) GetBlocked(params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "tweet.fields",
+		"user.fields", "pagination_token",
+	}
 	route := fmt.Sprintf("users/%s/blocking", c.userID)
-	return c.get_request(route, params, nil)
+	return c.get_request(route, true, params, endpoint_parameters)
 }
 
 // ** Follows ** //
@@ -262,8 +329,25 @@ func (c *Client) UnfollowUser(target_user_id string) (*http.Response, error) {
 	return c.delete_request(route)
 }
 
-// func (c *Client) GetUserFollowers(user_id string) (*http.Response, error)
-// func (c *Client) GetUserFollowing(user_id string) (*http.Response, error)
+func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "tweet.fields",
+		"user.fields", "pagination_token",
+	}
+	route := fmt.Sprintf("users/%s/followers", user_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> User
+}
+
+func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "tweet.fields",
+		"user.fields", "pagination_token",
+	}
+	route := fmt.Sprintf("users/%s/following", user_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
+	// returning data type ===> User
+}
 
 // ** Mutes ** //
 func (c *Client) Mute(target_user_id string) (*http.Response, error) {
@@ -285,13 +369,18 @@ func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
 	return c.delete_request(route)
 }
 
-func (c *Client) GetMuted() (*http.Response, error) {
+func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "tweet.fields",
+		"user.fields", "pagination_token",
+	}
 	route := fmt.Sprintf("users/%s/muting", c.userID)
-	return c.get_request(route, nil, nil)
+	return c.get_request(route, true, params, endpoint_parameters)
+	// returning data type ===> User
 }
 
 // ** User lookup ** //
-func (c *Client) GetUser(user_id, username string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetUser(user_id, username string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	var route string
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
@@ -307,11 +396,16 @@ func (c *Client) GetUser(user_id, username string, params map[string]interface{}
 	} else {
 		return nil, fmt.Errorf("id or username is required")
 	}
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> User
 }
 
-func (c *Client) GetUsers(user_ids, usernames []string, params map[string]interface{}) (*http.Response, error) {
+// TODO: GetUserByID
+// TODO: GetUsersByIDs
+// TODO: GetUserByUsername
+// TODO: GetUsersByUsernames
+
+func (c *Client) GetUsers(user_ids, usernames []string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	var route string
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
@@ -330,7 +424,7 @@ func (c *Client) GetUsers(user_ids, usernames []string, params map[string]interf
 	} else {
 		return nil, fmt.Errorf("id or username is required")
 	}
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> User
 }
 
@@ -341,13 +435,13 @@ func (c *Client) GetUsers(user_ids, usernames []string, params map[string]interf
 // func (c *Client) GetSpaceBuyers(space_id string) (*http.Response, error)
 
 // ** List Tweets lookup ** //
-func (c *Client) GetListTweets(list_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s/tweets", list_id)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> Tweet
 }
 
@@ -371,43 +465,43 @@ func (c *Client) UnfollowList(list_id string) (*http.Response, error) {
 	return c.delete_request(route)
 }
 
-func (c *Client) GetListFollowers(list_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s/followers", list_id)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> User
 }
 
-func (c *Client) GetFollowedLists(params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
-	route := fmt.Sprintf("users/%s/followed_lists", c.userID)
-	return c.get_request(route, params, endpoint_parameters)
+	route := fmt.Sprintf("users/%s/followed_lists", user_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> List
 }
 
 // ** List lookup ** //
-func (c *Client) GetList(list_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetList(list_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "list.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s", list_id)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> List
 }
 
-func (c *Client) GetOwnedLists(params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
-	route := fmt.Sprintf("users/%s/owned_lists", c.userID)
-	return c.get_request(route, params, endpoint_parameters)
+	route := fmt.Sprintf("users/%s/owned_lists", user_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> List
 }
 
@@ -431,23 +525,23 @@ func (c *Client) RemoveListMember(list_id, user_id string) (*http.Response, erro
 	return c.delete_request(route)
 }
 
-func (c *Client) GetListMembers(list_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s/members", list_id)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> User
 }
 
-func (c *Client) GetListMemberships(params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
-	route := fmt.Sprintf("users/%s/list_memberships", c.userID)
-	return c.get_request(route, params, endpoint_parameters)
+	route := fmt.Sprintf("users/%s/list_memberships", user_id)
+	return c.get_request(route, oauth_1a, params, endpoint_parameters)
 	// returning data type ===> List
 }
 
@@ -514,7 +608,7 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*http.Response, 
 		"expansions", "list.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/%s/pinned_lists", c.userID)
-	return c.get_request(route, params, endpoint_parameters)
+	return c.get_request(route, true, params, endpoint_parameters)
 	// returning data type ===> List
 }
 
