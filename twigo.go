@@ -9,8 +9,7 @@ import (
 
 func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken string, wait_on_rate_limit bool) (*Client, error) {
 	keys_exists := consumerKey != "" && consumerSecret != "" && accessToken != "" && accessTokenSecret != ""
-	bearer_token_auth := bearerToken != ""
-	read_only_access := bearer_token_auth && !keys_exists
+	read_only_access := bearerToken != "" && !keys_exists
 
 	if !read_only_access && !keys_exists {
 		return nil, fmt.Errorf("consumer key, consumer secret, access token and access token secret must be provided")
@@ -36,12 +35,8 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		}
 
 		authorizedClient, err := consumer.MakeHttpClient(&t)
-		return &Client{authorizedClient, consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken, read_only_access, bearer_token_auth, userID}, err
+		return &Client{authorizedClient, consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken, read_only_access, userID}, err
 	}
 
-	return &Client{nil, consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken, read_only_access, bearer_token_auth, ""}, nil
+	return &Client{nil, consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken, read_only_access, ""}, nil
 }
-
-// func NewAPI(consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken string, wait_on_rate_limit bool) (*Client, error) {
-// 	return nil, nil
-// }
