@@ -27,10 +27,10 @@ type Client struct {
 }
 
 type Response struct {
-	Data     interface{}
+	Data     []interface{}
 	Includes interface{}
-	Errors   interface{}
-	Meta     interface{}
+	Errors   []ErrorEntity
+	Meta     MetaEntity
 }
 
 // ** Requests ** //
