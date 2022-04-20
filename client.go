@@ -413,7 +413,7 @@ func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[stri
 	// returning data type ===> User
 }
 
-func (c *Client) GetUsersByUsernames(user_ids, usernames []string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
 		"tweet.fields", "user.fields",
