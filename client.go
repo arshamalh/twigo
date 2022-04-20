@@ -86,7 +86,24 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 
 	}
 	parsedRoute.RawQuery = parameters.Encode()
-	return c.authorizedClient.Get(base_route + route)
+	fullRoute := base_route + parsedRoute.String()
+	fmt.Println("Route:>> ", fullRoute)
+	if oauth_1a {
+		return c.authorizedClient.Get(fullRoute)
+	} else {
+		request, err := http.NewRequest("GET", fullRoute, nil)
+		if err != nil {
+			return nil, err
+		}
+	
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
+		//%% TODO 1: It seems kind of silly! Do we really need to use authorizedClient?
+		// return c.authorizedClient.Do(request)
+
+		//%% TODO 2: We should define client here, not once in initialization, or tweepy is doing it wrong?
+		client := http.Client{}
+		return client.Do(request)
+	}
 }
 
 func (c *Client) delete_request(route string) (*http.Response, error) {
@@ -97,6 +114,10 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 	}
 	return c.authorizedClient.Do(request)
 }
+
+// %%TODO: maybe using map[string]interface{} for params is not a good approach, we can use a predefined struct instead.
+// the second approch will help other developers to understand what's going on and which params to pass.
+// but first approach is more convenient for those who know which params they should pass.
 
 // ** Manage Tweets ** //
 func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
@@ -183,7 +204,7 @@ func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 }
 
 // ** Retweets ** //
-func (c *Client) Retweet(tweet_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) Retweet(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
@@ -195,7 +216,7 @@ func (c *Client) Retweet(tweet_id string, params map[string]interface{}) (*http.
 	)
 }
 
-func (c *Client) Unretweet(tweet_id string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) UnRetweet(tweet_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
 	return c.delete_request(route)
 }
