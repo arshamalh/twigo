@@ -79,6 +79,7 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	fullRoute := base_route + parsedRoute.String()
 	fmt.Println("Route:>> ", fullRoute)
 	if c.read_only_access { oauth_1a = false }
+	if c.bearerToken == "" { oauth_1a = true }
 	if oauth_1a {
 		//%% TODO: Should we define authorizedClient here? or tweepy is doing it wrong?
 		return c.authorizedClient.Get(fullRoute)
