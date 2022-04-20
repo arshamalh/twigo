@@ -21,16 +21,16 @@ import "github.com/arshamalh/twigo"
 
 twigo.NewClient(
     "ConsumerKey",
-	"ConsumerSecret",
-	"AccessToken",
-	"AccessTokenSecret",
-  // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory, but would be better.
-  // TODO: Also we are going to add bearer_token finder.
-	"BearerToken",
+    "ConsumerSecret",
+    "AccessToken",
+    "AccessTokenSecret",
+    // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory, but would be better.
+    // TODO: Also we are going to add bearer_token finder.
+    "BearerToken",
 
-	true, // ==> wait_on_rate_limit
-  // wait_on_rate_limit default is false,
-  // TODO: maybe I should remove it and make default to true!?
+    true, // ==> wait_on_rate_limit
+    // wait_on_rate_limit default is false,
+    // TODO: maybe I should remove it and make default to true!?
 )
 ```
 And use any function you need, for example:
@@ -40,7 +40,7 @@ response, err := client.GetLikingUsers(
   false, // should we use oauth_1? Can be true, depend on your preferences, but maybe we will change it if needed.
   map[string]interface{}{
     "max_results": 5,
-  },)
+  })
 
 if err != nil {
   fmt.Println(err)
@@ -87,7 +87,7 @@ More examples:
 response, err := client.GetUsersByUsernames(
   []string{"arshamalh", "elonmush", "someone_else"}, 
   true, // Also we suggest you to use false as default 
-  nil // There is no param!
+  nil, // There is no param!
 )
 ```
 Retweeting and Liking a tweet:
