@@ -31,10 +31,6 @@ twigo.NewClient(
     // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory, but would be better.
     // TODO: Also we are going to add bearer_token finder.
     "BearerToken",
-
-    true, // ==> wait_on_rate_limit
-    // wait_on_rate_limit default is false,
-    // TODO: maybe I should remove it and make default to true!?
 )
 ```
 And use any function you need, for example:

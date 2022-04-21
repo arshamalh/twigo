@@ -7,7 +7,7 @@ import (
 	"github.com/mrjones/oauth"
 )
 
-func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken string, wait_on_rate_limit bool) (*Client, error) {
+func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken string) (*Client, error) {
 	keys_exists := consumerKey != "" && consumerSecret != "" && accessToken != "" && accessTokenSecret != ""
 	read_only_access := bearerToken != "" && !keys_exists
 
