@@ -1,0 +1,6 @@
+- [ ] Search Queries and QueryMaker
+- [ ] Includes
+- [ ] Errors
+- [ ] Parse remaining and total rate limit in the header
+- [ ] Pagination
+- [ ] API v1.1
