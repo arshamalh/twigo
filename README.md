@@ -62,15 +62,10 @@ And result will be a Go struct like this:
       Name:Janice Lane 
       Username:JaniceL44359093
       Verified:false
-    } {
-      ID:1506619792345731078 
-      Name:Thelma Lindsey 
-      Username:ThelmaL97985945
-      Verified:false
-    } 
+    }
     // And more...
   ] 
-  Includes:<nil> 
+  Includes: // Some structs, read more on docs...
   Errors:[] 
   Meta:{
     ResultCount:5 
@@ -79,15 +74,20 @@ And result will be a Go struct like this:
     PreviousToken: 
     NextToken:7140dibdnow9c7btw480y5xgmlpwtbsh4fyqnqmwz9k4w
   }
+  RateLimits:{
+    Limit:75
+    Remaining:74
+    ResetTimestamp:1650553033
+  }
 }
 ```
 
 More examples:
 ```go
 response, err := client.GetUsersByUsernames(
-  []string{"arshamalh", "elonmush", "someone_else"}, 
-  true, // Also we suggest you to use false as default 
-  nil, // There is no param!
+  []string{"arshamalh", "elonmusk", "someone_else"}, 
+  true, // Also we suggest you to use false as default.
+  nil, // There is no param in this example.
 )
 ```
 Retweeting and Liking a tweet:
@@ -106,6 +106,17 @@ client.CreateTweet("This is a test tweet", nil)
 ```
 Simple, right?
 
-## Contribution
+### Rate limits
+How many actions can we do?
 
-Twigo is free and open to use for anyone, but you can contribute if you like and this means a world for us.
+You can simpy read RateLimits attribute on the Response!
+```go
+  RateLimits:{
+    Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
+    Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
+    ResetTimestamp:1650553033 // Reset remaining calls in this timestamp.
+  }
+```
+
+## Contribution
+Feel free to open an issue, contribute and contact us!
