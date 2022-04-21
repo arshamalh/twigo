@@ -1,6 +1,9 @@
-- [ ] Search Queries and QueryMaker
+- [x] Parse remaining and total rate limit in the header
 - [ ] Includes
 - [ ] Errors
-- [ ] Parse remaining and total rate limit in the header
+- [ ] Functions docstring
+- [ ] Tests
+- [ ] Docs
+- [ ] Search Queries and QueryMaker
 - [ ] Pagination
 - [ ] API v1.1
