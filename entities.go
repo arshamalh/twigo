@@ -21,8 +21,15 @@ type ErrorEntity struct {
 
 type IncludesEntity struct {
 	Users []User `json:"users"`
+	Tweets []Tweet `json:"tweets"`
+	Polls []Poll `json:"polls"` // Do you remember if "poll" in the client?
+	Places []Place `json:"places"`
+	Media []Media `json:"media"`
 }
 
+type Poll struct {}
+type Place struct {}
+type Media struct {}
 type Tweet struct {
 	ID               string   `json:"id"`
 	Text             string   `json:"text"`
@@ -81,7 +88,7 @@ type List struct {
 // *** Response Entities *** //
 type TweetResponse struct {
 	Data     Tweet
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -94,7 +101,7 @@ func (r *TweetResponse) Parse(raw_response *http.Response) (*TweetResponse, erro
 
 type TweetsResponse struct {
 	Data     []Tweet
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -107,7 +114,7 @@ func (r *TweetsResponse) Parse(raw_response *http.Response) (*TweetsResponse, er
 
 type UserResponse struct {
 	Data     User
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -120,7 +127,7 @@ func (r *UserResponse) Parse(raw_response *http.Response) (*UserResponse, error)
 
 type UsersResponse struct {
 	Data     []User
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -133,7 +140,7 @@ func (r *UsersResponse) Parse(raw_response *http.Response) (*UsersResponse, erro
 
 type SpaceResponse struct {
 	Data     Space
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -146,7 +153,7 @@ func (r *SpaceResponse) Parse(raw_response *http.Response) (*SpaceResponse, erro
 
 type SpacesResponse struct {
 	Data     Space
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -159,7 +166,7 @@ func (r *SpacesResponse) Parse(raw_response *http.Response) (*SpacesResponse, er
 
 type ListResponse struct {
 	Data     List
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
@@ -172,7 +179,7 @@ func (r *ListResponse) Parse(raw_response *http.Response) (*ListResponse, error)
 
 type ListsResponse struct {
 	Data     List
-	Includes interface{}
+	Includes IncludesEntity
 	Errors   []ErrorEntity
 	Meta     MetaEntity
 }
