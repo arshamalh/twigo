@@ -78,8 +78,14 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	parsedRoute.RawQuery = parameters.Encode()
 	fullRoute := base_route + parsedRoute.String()
 	fmt.Println("Route:>> ", fullRoute)
-	if c.read_only_access { oauth_1a = false }
-	if c.bearerToken == "" { oauth_1a = true }
+	//%% Conditions below will change oauth kind depend on the specified data in client initialization.
+	//%% But they seems wrong.
+	if c.read_only_access {
+		oauth_1a = false
+	}
+	if c.bearerToken == "" {
+		oauth_1a = true
+	}
 	if oauth_1a {
 		//%% TODO: Should we define authorizedClient here? or tweepy is doing it wrong?
 		return c.authorizedClient.Get(fullRoute)
@@ -227,9 +233,43 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 }
 
 // ** Search tweets ** //
-// func (c *Client) SearchRecentTweets() (*http.Response, error)
-// func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*http.Response, error)
-// func QueryMaker()
+func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
+	endpoint_parameters := []string{
+		"end_time", "expansions", "max_results", "media.fields",
+		"next_token", "place.fields", "poll.fields", "query",
+		"since_id", "start_time", "tweet.fields", "until_id",
+		"user.fields",
+	}
+	route := "tweets/search/all"
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["query"] = query
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&TweetsResponse{}).Parse(response)
+}
+
+func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+	endpoint_parameters := []string{
+		"end_time", "expansions", "max_results", "media.fields",
+		"next_token", "place.fields", "poll.fields", "query",
+		"since_id", "start_time", "tweet.fields", "until_id",
+		"user.fields",
+	}
+	route := "tweets/search/recent"
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["query"] = query
+	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&TweetsResponse{}).Parse(response)
+}
 
 // ** Timelines ** //
 func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
@@ -494,10 +534,78 @@ func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params m
 }
 
 // ** Spaces ** //
-// func (c *Client) SearchSpaces(query string) (*http.Response, error)
-// func (c *Client) GetSpaces(space_ids, user_ids []string) (*http.Response, error)
-// func (c *Client) GetSpace(space_id string) (*http.Response, error)
-// func (c *Client) GetSpaceBuyers(space_id string) (*http.Response, error)
+func (c *Client) SearchSpaces(query string, params map[string]interface{}) (*SpacesResponse, error) {
+	endpoint_parameters := []string{
+		"query", "expansions", "max_results",
+		"space.fields", "state", "user.fields",
+	}
+	route := "spaces/search"
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["query"] = query
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&SpacesResponse{}).Parse(response)
+}
+
+func (c *Client) GetSpacesBySpaceIDs(space_ids []string, params map[string]interface{}) (*SpacesResponse, error) {
+	endpoint_parameters := []string{
+		"ids", "user_ids", "expansions", "space.fields", "user.fields",
+	}
+	route := "spaces"
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["ids"] = space_ids
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&SpacesResponse{}).Parse(response)
+}
+
+func (c *Client) GetSpacesByCreatorIDs(creator_ids []string, params map[string]interface{}) (*SpacesResponse, error) {
+	endpoint_parameters := []string{
+		"ids", "user_ids", "expansions", "space.fields", "user.fields",
+	}
+	route := "spaces/by/creator_ids"
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["user_ids"] = creator_ids
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&SpacesResponse{}).Parse(response)
+}
+func (c *Client) GetSpace(space_id string, params map[string]interface{}) (*SpaceResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "space.fields", "user.fields",
+	}
+	route := fmt.Sprintf("spaces/%s", space_id)
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&SpaceResponse{}).Parse(response)
+}
+
+func (c *Client) GetSpaceBuyers(space_id string, params map[string]interface{}) (*UsersResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+	route := fmt.Sprintf("spaces/%s/buyers", space_id)
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+	return (&UsersResponse{}).Parse(response)
+}
 
 // ** List Tweets lookup ** //
 func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
@@ -702,9 +810,43 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, 
 }
 
 // ** Batch Compliance ** //
-// func (c *Client) GetComplianceJobs(_type string) (*http.Response, error)
-// func (c *Client) GetComplianceJob(id string) (*http.Response, error)
-// func (c *Client) CreateComplianceJobs(_type, name, resumable string) (*http.Response, error)
+func (c *Client) CreateComplianceJobs(job_type, name, resumable string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"type": job_type,
+	}
+	if name != "" {
+		data["name"] = name
+	}
+	if resumable != "" {
+		data["resumable"] = resumable
+	}
 
+	route := "compliance/jobs"
+
+	return c.request(
+		"POST",
+		route,
+		data,
+	)
+}
+
+func (c *Client) GetComplianceJob(job_id string) (*http.Response, error) {
+	route := fmt.Sprintf("compliance/jobs/%s", job_id)
+	return c.get_request(route, false, nil, nil)
+}
+
+func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{}) (*http.Response, error) {
+	endpoint_parameters := []string{
+		"type", "status",
+	}
+	if params == nil {
+		params = map[string]interface{}{}
+	}
+	params["type"] = job_type
+
+	route := "compliance/jobs"
+	return c.get_request(route, false, params, endpoint_parameters)
+}
+
+// func QueryMaker() string
 // func (c *Client) GetMe() *Response
-
