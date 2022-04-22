@@ -1,7 +1,10 @@
 - [x] Parse remaining and total rate limit in the header
+- [ ] Functions docstring
+- [ ] Add suitable response 
+    - [x] for GET responses
+    - [ ] for PUT and POST and DELETE responses.
 - [ ] Includes
 - [ ] Errors
-- [ ] Functions docstring
 - [ ] Tests
 - [ ] Docs
 - [ ] Search Queries and QueryMaker
