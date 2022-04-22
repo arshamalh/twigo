@@ -111,6 +111,7 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 }
 
 // ** Manage Tweets ** //
+
 func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"text": text,
@@ -175,6 +176,16 @@ func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string
 }
 
 // ** Hide replies ** //
+
+// Hides a reply to a Tweet
+//
+// Parameters
+//
+// reply_id:
+// 	Unique identifier of the Tweet to hide. The Tweet must belong to a
+// 	conversation initiated by the authenticating user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/hide-replies/api-reference/put-tweets-id-hidden
 func (c *Client) HideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"hidden": true,
@@ -188,6 +199,15 @@ func (c *Client) HideReply(reply_id string) (*http.Response, error) {
 	)
 }
 
+// Unhides a reply to a Tweet
+//
+// Parameters
+//
+// reply_id:
+// 	Unique identifier of the Tweet to unhide. The Tweet must belong to
+//  a conversation initiated by the authenticating user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/hide-replies/api-reference/put-tweets-id-hidden
 func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"hidden": false,
