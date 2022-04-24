@@ -114,6 +114,11 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 
 // Creates a Tweet on behalf of an authenticated user
 //
+// Parameters
+//
+// text: Text of the Tweet being created. this field is required if media.media_ids is not present, otherwise pass empty string.
+//
+// params: A map of parameters.
 // you can pass some extra parameters, such as:
 // 	"direct_message_deep_link", "for_super_followers_only", "media", "geo", "poll", "reply", "reply_settings", "quote_tweet_id",
 // Some of these parameters are a little special and should be passed like this:
@@ -137,6 +142,10 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 // 		"poll": poll,
 // 		"reply": reply,
 // 	}
+//
+// Reference
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets
 func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
 	if params == nil {
 		params = make(map[string]interface{})
@@ -144,6 +153,8 @@ func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.
 
 	if text != "" {
 		params["text"] = text
+	} else if params["media"] == nil {
+		return nil, fmt.Errorf("text or media is required")
 	}
 
 	return c.request(
@@ -153,12 +164,31 @@ func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.
 	)
 }
 
+// Allows an authenticated user ID to delete a Tweet
+//
+// Parameters
+//
+// tweet_id: The Tweet ID you are deleting.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/delete-tweets-id
 func (c *Client) DeleteTweet(tweet_id string) (*http.Response, error) {
 	route := fmt.Sprintf("tweets/%s", tweet_id)
 	return c.delete_request(route)
 }
 
 // ** Likes ** //
+
+// Like a Tweet.
+//
+// Parameters
+//
+// tweet_id: The ID of the Tweet that you would like to Like.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/post-users-id-likesx
 func (c *Client) Like(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
@@ -171,16 +201,44 @@ func (c *Client) Like(tweet_id string) (*http.Response, error) {
 	)
 }
 
+// Unlike a Tweet.
+//
+// The request succeeds with no action when the user sends a request to a
+// user they're not liking the Tweet or have already unliked the Tweet.
+//
+// Parameters
+//
+// tweet_id: The ID of the Tweet that you would like to unlike.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/delete-users-id-likes-tweet_id
 func (c *Client) Unlike(tweet_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
 	return c.delete_request(route)
 }
 
+// Allows you to get information about a Tweet’s liking users.
+//
+// Parameters
+//
+// tweet_id: Tweet ID of the Tweet to request liking users of.
+//
+// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
+//
+// params (keys):
+// 	"expansions", "media.fields", "place.fields",
+// 	"poll.fields", "tweet.fields", "user.fields",
+// 	"max_results"
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/get-tweets-id-liking_users
 func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
-		"max_results",
+		"max_results", "pagination_token",
 	}
 
 	route := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
@@ -191,6 +249,24 @@ func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[strin
 	return (&UsersResponse{}).Parse(response)
 }
 
+// Allows you to get information about a user’s liked Tweets.
+//
+// The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
+//
+// Parameters
+//
+// tweet_id: User ID of the user to request liked Tweets for.
+//
+// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
+//
+// params (keys):
+// 	"expansions", "media.fields", "place.fields",
+// 	"poll.fields", "tweet.fields", "user.fields",
+// 	"max_results"
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/get-users-id-liked_tweets
 func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "media.fields",
@@ -215,6 +291,8 @@ func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string
 // 	Unique identifier of the Tweet to hide. The Tweet must belong to a
 // 	conversation initiated by the authenticating user.
 //
+// References
+//
 // https://developer.twitter.com/en/docs/twitter-api/tweets/hide-replies/api-reference/put-tweets-id-hidden
 func (c *Client) HideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
@@ -237,6 +315,8 @@ func (c *Client) HideReply(reply_id string) (*http.Response, error) {
 // 	Unique identifier of the Tweet to unhide. The Tweet must belong to
 //  a conversation initiated by the authenticating user.
 //
+// References
+//
 // https://developer.twitter.com/en/docs/twitter-api/tweets/hide-replies/api-reference/put-tweets-id-hidden
 func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 	data := map[string]interface{}{
@@ -252,6 +332,16 @@ func (c *Client) UnHideReply(reply_id string) (*http.Response, error) {
 }
 
 // ** Retweets ** //
+
+// Causes the user ID to Retweet the target Tweet.
+//
+// Parameters
+//
+// tweet_id: The ID of the Tweet that you would like to Retweet.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/retweets/api-reference/post-users-id-retweets
 func (c *Client) Retweet(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
@@ -264,15 +354,45 @@ func (c *Client) Retweet(tweet_id string) (*http.Response, error) {
 	)
 }
 
+// Allows an authenticated user ID to remove the Retweet of a Tweet.
+//
+// The request succeeds with no action when the user sends a request to a
+// user they're not Retweeting the Tweet or have already removed the
+// Retweet of.
+//
+// Parameters
+//
+// tweet_id: The ID of the Tweet that you would like to remove the Retweet of.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/retweets/api-reference/delete-users-id-retweets-tweet_id
 func (c *Client) UnRetweet(tweet_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
 	return c.delete_request(route)
 }
 
+// Allows you to get information about who has Retweeted a Tweet.
+//
+// Parameters
+//
+// tweet_id: Tweet ID of the Tweet to request Retweeting users of.
+//
+// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
+//
+// params (keys):
+//	"expansions", "media.fields", "place.fields",
+// 	"poll.fields", "tweet.fields", "user.fields",
+// 	"max_results", "pagination_token"
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/retweets/api-reference/get-tweets-id-retweeted_by
 func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
+		"max_results", "pagination_token",
 	}
 	route := fmt.Sprintf("tweets/%s/retweeted_by", tweet_id)
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
