@@ -112,14 +112,39 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 
 // ** Manage Tweets ** //
 
-func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
-	data := map[string]interface{}{
-		"text": text,
-	}
+// Send a Tweet
+// media will get a map[string][]string
+// media := map[string][]string{
+// 	"media_ids": []string{}
+//  "tagged_user_ids": []string{}
+// }
+// poll := map[string]interface{}{
+// 	"options": map[string]string{},
+// 	"duration_minutes": int value,
+// }
+// reply := map[string]interface{}{
+// 	"in_reply_to_tweet_id": "",
+// 	"exclude_reply_user_ids": []string{},
+// }
+// geo := map[string]string{"place_id": value}
+// params := map[string]interface{}{
+//	"text": text
+// 	"media": media,
+//  "geo": geo,
+//  "poll": poll,
+//  "reply": reply,
+// }
+func (c *Client) CreateTweet(params map[string]interface{}) (*http.Response, error) {
+	// endpoint_parameters := []string{
+	// 	"direct_message_deep_link", "for_super_followers_only",
+	// 	"media", "geo", "text", "poll", "reply",
+	// 	"reply_settings", "quote_tweet_id",
+	// }
+
 	return c.request(
 		"POST",
 		"tweets",
-		data,
+		params,
 	)
 }
 

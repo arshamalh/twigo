@@ -1,12 +1,13 @@
 - [x] Parse remaining and total rate limit in the header
+- [ ] Create Tweet options and parameters
 - [ ] Functions docstring
 - [ ] Add suitable response 
     - [x] for GET responses
     - [ ] for PUT and POST and DELETE responses.
 - [ ] Includes
 - [ ] Errors
+- [ ] Pagination
+- [ ] Search Queries and QueryMaker
 - [ ] Tests
 - [ ] Docs
-- [ ] Search Queries and QueryMaker
-- [ ] Pagination
 - [ ] API v1.1
