@@ -205,7 +205,7 @@ func (r *ListResponse) Parse(raw_response *http.Response) (*ListResponse, error)
 }
 
 type ListsResponse struct {
-	Data       List
+	Data       []List
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
