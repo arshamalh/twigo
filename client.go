@@ -403,6 +403,61 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 }
 
 // ** Search tweets ** //
+
+// The full-archive search endpoint returns the complete history of public
+// Tweets matching a search query; since the first Tweet was created March
+// 26, 2006.
+//
+// This endpoint is only available to those users who have been approved for the `Academic Research product track`
+//
+// The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
+//
+// Parameters
+//
+// query : str
+// 	One query for matching Tweets. Up to 1024 characters.
+// end_time : Union[datetime.datetime, str]
+// 	YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339). Used with ``start_time``.
+// 	The newest, most recent UTC timestamp to which the Tweets will be
+// 	provided. Timestamp is in second granularity and is exclusive (for
+// 	example, 12:00:01 excludes the first second of the minute). If used
+// 	without ``start_time``, Tweets from 30 days before ``end_time``
+// 	will be returned by default. If not specified, ``end_time`` will
+// 	default to [now - 30 seconds].
+// max_results : int
+// 	The maximum number of search results to be returned by a request. A
+// 	number between 10 and the system limit (currently 500). By default,
+// 	a request response will return 10 results.
+// next_token : str
+// 	This parameter is used to get the next 'page' of results. The value
+// 	used with the parameter is pulled directly from the response
+// 	provided by the API, and should not be modified. You can learn more
+// 	by visiting our page on `pagination`_.
+// since_id : Union[int, str]
+// 	Returns results with a Tweet ID greater than (for example, more
+// 	recent than) the specified ID. The ID specified is exclusive and
+// 	responses will not include it. If included with the same request as
+// 	a ``start_time`` parameter, only ``since_id`` will be used.
+// start_time : Union[datetime.datetime, str]
+// 	YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339). The oldest UTC timestamp
+// 	from which the Tweets will be provided. Timestamp is in second
+// 	granularity and is inclusive (for example, 12:00:01 includes the
+// 	first second of the minute). By default, a request will return
+// 	Tweets from up to 30 days ago if you do not include this parameter.
+// until_id: string
+// 	Returns results with a Tweet ID less than (that is, older than) the
+// 	specified ID. Used with ``since_id``. The ID specified is exclusive
+// 	and responses will not include it.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all
+//
+// Academic Research product track: https://developer.twitter.com/en/docs/projects/overview#product-track
+//
+// Tweet cap: https://developer.twitter.com/en/docs/projects/overview#tweet-cap
+//
+// pagination: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/paginate
 func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
@@ -422,6 +477,66 @@ func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*
 	return (&TweetsResponse{}).Parse(response)
 }
 
+// The recent search endpoint returns Tweets from the last seven days that match a search query.
+//
+// The Tweets returned by this endpoint count towards the Project-level
+// `Tweet cap`.
+//
+// Parameters
+//
+// query : str
+// 	One rule for matching Tweets. If you are using a
+// 	`Standard Project`_ at the Basic `access level`_, you can use the
+// 	basic set of `operators`_ and can make queries up to 512 characters
+// 	long. If you are using an `Academic Research Project`_ at the Basic
+// 	access level, you can use all available operators and can make
+// 	queries up to 1,024 characters long.
+// end_time : Union[datetime.datetime, str]
+// 	YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339). The newest, most recent
+// 	UTC timestamp to which the Tweets will be provided. Timestamp is in
+// 	second granularity and is exclusive (for example, 12:00:01 excludes
+// 	the first second of the minute). By default, a request will return
+// 	Tweets from as recent as 30 seconds ago if you do not include this
+// 	parameter.
+// max_results : int
+// 	The maximum number of search results to be returned by a request. A
+// 	number between 10 and 100. By default, a request response will
+// 	return 10 results.
+// next_token : str
+// 	This parameter is used to get the next 'page' of results. The value
+// 	used with the parameter is pulled directly from the response
+// 	provided by the API, and should not be modified.
+// since_id : Union[int, str]
+// 	Returns results with a Tweet ID greater than (that is, more recent
+// 	than) the specified ID. The ID specified is exclusive and responses
+// 	will not include it. If included with the same request as a
+// 	``start_time`` parameter, only ``since_id`` will be used.
+// start_time : Union[datetime.datetime, str]
+// 	YYYY-MM-DDTHH:mm:ssZ (ISO 8601/RFC 3339). The oldest UTC timestamp
+// 	(from most recent seven days) from which the Tweets will be
+// 	provided. Timestamp is in second granularity and is inclusive (for
+// 	example, 12:00:01 includes the first second of the minute). If
+// 	included with the same request as a ``since_id`` parameter, only
+// 	``since_id`` will be used. By default, a request will return Tweets
+// 	from up to seven days ago if you do not include this parameter.
+// until_id : Union[int, str]
+// 	Returns results with a Tweet ID less than (that is, older than) the
+// 	specified ID. The ID specified is exclusive and responses will not
+// 	include it.
+//
+// References
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent
+//
+// Tweet cap: https://developer.twitter.com/en/docs/projects/overview#tweet-cap
+//
+// Standard Project: https://developer.twitter.com/en/docs/projects
+//
+// access level: https://developer.twitter.com/en/products/twitter-api/early-access/guide.html#na_1
+//
+// operators: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query
+//
+// Academic Research Project: https://developer.twitter.com/en/docs/projects
 func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
@@ -752,6 +867,7 @@ func (c *Client) GetSpacesByCreatorIDs(creator_ids []string, params map[string]i
 	}
 	return (&SpacesResponse{}).Parse(response)
 }
+
 func (c *Client) GetSpace(space_id string, params map[string]interface{}) (*SpaceResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "space.fields", "user.fields",
