@@ -777,6 +777,17 @@ func (c *Client) GetBlocked(params map[string]interface{}) (*UsersResponse, erro
 }
 
 // ** Follows ** //
+
+// Allows a user ID to follow another user.
+//
+// If the target user does not have public Tweets, this endpoint will send
+// a follow request.
+//
+// The request succeeds with no action when the authenticated user sends a
+// request to a user they're already following, or if they're sending a
+// follower request to a user that does not have public Tweets.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/post-users-source_user_id-following
 func (c *Client) FollowUser(target_user_id string, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
@@ -791,11 +802,20 @@ func (c *Client) FollowUser(target_user_id string, params map[string]interface{}
 	)
 }
 
+// Allows a user ID to unfollow another user.
+//
+// The request succeeds with no action when the authenticated user sends a
+// request to a user they're not following or have already unfollowed.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/delete-users-source_id-following
 func (c *Client) UnfollowUser(target_user_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
 	return c.delete_request(route)
 }
 
+// Returns a list of users who are followers of the specified user ID.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-followers
 func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
@@ -819,6 +839,9 @@ func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[stri
 	return users.Parse(response)
 }
 
+// Returns a list of users the specified user ID is following
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
 func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
@@ -843,6 +866,9 @@ func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[stri
 }
 
 // ** Mutes ** //
+// Allows an authenticated user ID to mute the target user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/mutes/api-reference/post-users-user_id-muting
 func (c *Client) Mute(target_user_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"target_user_id": target_user_id,
@@ -857,11 +883,20 @@ func (c *Client) Mute(target_user_id string) (*http.Response, error) {
 	)
 }
 
+// Allows an authenticated user ID to unmute the target user.
+//
+// The request succeeds with no action when the user sends a request to a
+// user they're not muting or have already unmuted.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/mutes/api-reference/delete-users-user_id-muting
 func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
 	return c.delete_request(route)
 }
 
+// Returns a list of users who are muted by the authenticating user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/mutes/api-reference/get-users-muting
 func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
@@ -886,6 +921,11 @@ func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersR
 }
 
 // ** User lookup ** //
+
+// Returns a variety of information about a single user specified by the
+// requested ID.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-id
 func (c *Client) GetUserByID(user_id string, oauth_1a bool, params map[string]interface{}) (*UserResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
@@ -898,6 +938,10 @@ func (c *Client) GetUserByID(user_id string, oauth_1a bool, params map[string]in
 	return (&UserResponse{}).Parse(response)
 }
 
+// Returns a variety of information about a single user specified by the
+// requested username.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
 func (c *Client) GetUserByUsername(username string, oauth_1a bool, params map[string]interface{}) (*UserResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
@@ -910,6 +954,10 @@ func (c *Client) GetUserByUsername(username string, oauth_1a bool, params map[st
 	return (&UserResponse{}).Parse(response)
 }
 
+// Returns a variety of information about one or more users specified by
+// the requested IDs.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users
 func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
@@ -931,6 +979,10 @@ func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[stri
 	return (&UsersResponse{}).Parse(response)
 }
 
+// Returns a variety of information about one or more users specified by
+// the requested usernames.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by
 func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
@@ -1328,4 +1380,3 @@ func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{
 }
 
 // func QueryMaker() string
-// func (c *Client) GetMe() *Response
