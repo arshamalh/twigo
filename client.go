@@ -922,6 +922,28 @@ func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersR
 
 // ** User lookup ** //
 
+// Returns information about an authorized user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-me
+func (c *Client) GetMe(oauth_1a bool, params map[string]interface{}) (*UserResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "tweet.fields", "user.fields",
+	}
+
+	route := "users/me"
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
+	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UserResponse{}).Parse(response)
+}
+
 // Returns a variety of information about a single user specified by the
 // requested ID.
 //
