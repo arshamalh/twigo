@@ -2,6 +2,7 @@ package twigo
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -98,6 +99,13 @@ type List struct {
 	Description   string `json:"description"`
 }
 
+// *** Request struct *** //
+type CallerData struct {
+	ID       string
+	OAuth_1a bool
+	Params   map[string]interface{}
+}
+
 // *** Response Entities *** //
 type TweetResponse struct {
 	Data       Tweet
@@ -120,6 +128,8 @@ type TweetsResponse struct {
 	Errors     []ErrorEntity
 	Meta       MetaEntity
 	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(string, bool, map[string]interface{}) (*TweetsResponse, error)
 }
 
 func (r *TweetsResponse) Parse(raw_response *http.Response) (*TweetsResponse, error) {
@@ -127,6 +137,14 @@ func (r *TweetsResponse) Parse(raw_response *http.Response) (*TweetsResponse, er
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
+}
+
+func (r *TweetsResponse) NextPage() (*TweetsResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
 type UserResponse struct {
@@ -150,6 +168,8 @@ type UsersResponse struct {
 	Errors     []ErrorEntity
 	Meta       MetaEntity
 	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(string, bool, map[string]interface{}) (*UsersResponse, error)
 }
 
 func (r *UsersResponse) Parse(raw_response *http.Response) (*UsersResponse, error) {
@@ -157,6 +177,14 @@ func (r *UsersResponse) Parse(raw_response *http.Response) (*UsersResponse, erro
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
+}
+
+func (r *UsersResponse) NextPage() (*UsersResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
 type SpaceResponse struct {
@@ -180,6 +208,8 @@ type SpacesResponse struct {
 	Errors     []ErrorEntity
 	Meta       MetaEntity
 	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(string, bool, map[string]interface{}) (*SpacesResponse, error)
 }
 
 func (r *SpacesResponse) Parse(raw_response *http.Response) (*SpacesResponse, error) {
@@ -187,6 +217,14 @@ func (r *SpacesResponse) Parse(raw_response *http.Response) (*SpacesResponse, er
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
+}
+
+func (r *SpacesResponse) NextPage() (*SpacesResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
 type ListResponse struct {
@@ -210,6 +248,8 @@ type ListsResponse struct {
 	Errors     []ErrorEntity
 	Meta       MetaEntity
 	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(string, bool, map[string]interface{}) (*ListsResponse, error)
 }
 
 func (r *ListsResponse) Parse(raw_response *http.Response) (*ListsResponse, error) {
@@ -217,4 +257,12 @@ func (r *ListsResponse) Parse(raw_response *http.Response) (*ListsResponse, erro
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
+}
+
+func (r *ListsResponse) NextPage() (*ListsResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }

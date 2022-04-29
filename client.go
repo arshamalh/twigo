@@ -242,11 +242,20 @@ func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[strin
 	}
 
 	route := fmt.Sprintf("tweets/%s/liking_users", tweet_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetLikingUsers, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 // Allows you to get information about a user’s liked Tweets.
@@ -274,11 +283,19 @@ func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/%s/liked_tweets", user_id)
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetLikedTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // ** Hide replies ** //
@@ -394,12 +411,22 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 		"poll.fields", "tweet.fields", "user.fields",
 		"max_results", "pagination_token",
 	}
+
 	route := fmt.Sprintf("tweets/%s/retweeted_by", tweet_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetRetweeters, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 // ** Search tweets ** //
@@ -549,11 +576,14 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 		params = make(map[string]interface{})
 	}
 	params["query"] = query
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: query, OAuth_1a: oauth_1a, Params: params}
+	return (&TweetsResponse{Caller: c.SearchRecentTweets, CallerData: caller_data}).Parse(response)
 }
 
 // ** Timelines ** //
@@ -566,11 +596,19 @@ func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]
 	}
 	route := fmt.Sprintf("users/%s/tweets", user_id)
 
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
@@ -582,11 +620,19 @@ func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[strin
 
 	route := fmt.Sprintf("users/%s/mentions", user_id)
 
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetUserMentions, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // ** Tweet counts ** //
@@ -641,6 +687,8 @@ func (c *Client) GetTweets(tweet_ids []string, oauth_1a bool, params map[string]
 	if err != nil {
 		return nil, err
 	}
+	// TODO: Needs pagination => It gets an [] of strings, not string like others!
+	// But it seems this doesn't need pagination, it doesn't accept a pagination token.
 	return (&TweetsResponse{}).Parse(response)
 }
 
@@ -697,12 +745,22 @@ func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[stri
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
 	}
+
 	route := fmt.Sprintf("users/%s/followers", user_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetUserFollowers, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
@@ -710,12 +768,22 @@ func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[stri
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
 	}
+
 	route := fmt.Sprintf("users/%s/following", user_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetUserFollowing, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 // ** Mutes ** //
@@ -744,10 +812,20 @@ func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersR
 		"user.fields", "pagination_token",
 	}
 	route := fmt.Sprintf("users/%s/muting", c.userID)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, true, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: Needs pagination => It doesn't get an string!
+	// caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	// users := &UsersResponse{Caller: c.GetMuted, CallerData: caller_data}
+
 	return (&UsersResponse{}).Parse(response)
 }
 
@@ -900,11 +978,20 @@ func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]
 		"tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s/tweets", list_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetListTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // ** List follows ** //
@@ -932,12 +1019,22 @@ func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[stri
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
 	}
+
 	route := fmt.Sprintf("lists/%s/followers", list_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetListFollowers, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
@@ -945,12 +1042,22 @@ func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[stri
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
+
 	route := fmt.Sprintf("users/%s/followed_lists", user_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&ListsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	lists := &ListsResponse{Caller: c.GetFollowedLists, CallerData: caller_data}
+
+	return lists.Parse(response)
 }
 
 // ** List lookup ** //
@@ -971,12 +1078,22 @@ func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
+
 	route := fmt.Sprintf("users/%s/owned_lists", user_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&ListsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	lists := &ListsResponse{Caller: c.GetOwnedLists, CallerData: caller_data}
+
+	return lists.Parse(response)
 }
 
 // ** List members ** //
@@ -1004,12 +1121,22 @@ func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
 	}
+
 	route := fmt.Sprintf("lists/%s/members", list_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&UsersResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	users := &UsersResponse{Caller: c.GetListMembers, CallerData: caller_data}
+
+	return users.Parse(response)
 }
 
 func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
@@ -1017,12 +1144,22 @@ func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[st
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
 	}
+
 	route := fmt.Sprintf("users/%s/list_memberships", user_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&ListsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	lists := &ListsResponse{Caller: c.GetListMemberships, CallerData: caller_data}
+
+	return lists.Parse(response)
 }
 
 // ** Manage Lists ** //
