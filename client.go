@@ -756,13 +756,24 @@ func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 // Returns a list of users who are blocked by the authenticating user.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/blocks/api-reference/get-users-blocking
-func (c *Client) GetBlocked(params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetBlocked(params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
 	}
+
 	route := fmt.Sprintf("users/%s/blocking", c.userID)
-	return c.get_request(route, true, params, endpoint_parameters)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
+	response, err := c.get_request(route, true, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UsersResponse{}).Parse(response)
 }
 
 // ** Follows ** //
