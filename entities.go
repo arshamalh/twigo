@@ -30,15 +30,15 @@ type IncludesEntity struct {
 }
 
 type RateLimits struct {
-	Limit          int `json:"x-rate-limit"`
-	Remaining      int `json:"x-rate-limit-remaining"`
-	ResetTimestamp int `json:"x-rate-limit-reset"`
+	Limit          int   `json:"x-rate-limit"`
+	Remaining      int   `json:"x-rate-limit-remaining"`
+	ResetTimestamp int64 `json:"x-rate-limit-reset"`
 }
 
 func (r *RateLimits) Set(header http.Header) {
 	r.Limit, _ = strconv.Atoi(header.Get("X-Rate-Limit-Limit"))
 	r.Remaining, _ = strconv.Atoi(header.Get("X-Rate-Limit-Remaining"))
-	r.ResetTimestamp, _ = strconv.Atoi(header.Get("X-Rate-Limit-Reset"))
+	r.ResetTimestamp, _ = strconv.ParseInt(header.Get("X-Rate-Limit-Reset"), 10, 64)
 }
 
 type Poll struct{}
