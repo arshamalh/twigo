@@ -106,6 +106,53 @@ client.CreateTweet("This is a test tweet", nil)
 ```
 Simple, right?
 
+### How to paginate over results?
+if your method is paginatable, you can paginate using NextPage method attached to the response, like this:
+
+```go
+response, _ := client.GetUserTweets("1216345203453452289", false, nil)
+for {
+  fmt.Printf("%#v\n", response)
+  response, err = response.NextPage()  // Here the magic happens! NextPage method attached to response
+
+  if err != nil {  // Break the loop whenever there is no more pages.
+    fmt.Println(err)
+    break
+  }
+}
+```
+
+A little bit more complex example:
+
+```go
+response, err := client.GetUserTweets("1216345203453452289", false, nil)
+
+if err != nil {  // Is there any response at all?
+  fmt.Println(err)
+} else {
+  page_number := 1  // To keep track of page number.
+  for {
+    fmt.Printf("Page %d: %#v\n", page_number, response)
+    response, err = response.NextPage()
+
+    if err != nil {
+      fmt.Println(err)
+      break
+    }
+
+    // If rate limits exceeds, wait until it charges again, 
+    // it's not a good approach, because all of your app will sleep, 
+    // it's highly recommended to do it in a goroutine instead.
+    if response.RateLimits.Remaining == 0 {
+      fmt.Println("Rate limit reached")
+      sleeping_duration := time.Until(time.Unix(response.RateLimits.ResetTimestamp, 0))
+      time.Sleep(sleeping_duration)
+		}
+    page_number++
+  }
+}
+```
+
 ### Rate limits
 How many actions can we do?
 
@@ -114,7 +161,7 @@ You can simpy read RateLimits attribute on the Response!
   RateLimits:{
     Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
     Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
-    ResetTimestamp:1650553033 // Reset remaining calls in this timestamp.
+    ResetTimestamp:1650553033 // Reset (charge up) remaining calls in this timestamp.
   }
 ```
 
