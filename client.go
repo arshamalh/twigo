@@ -587,6 +587,15 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 }
 
 // ** Timelines ** //
+
+// Returns Tweets composed by a single user, specified by the requested
+// user ID. By default, the most recent ten Tweets are returned per
+// request. Using pagination, the most recent 3,200 Tweets can be
+// retrieved.
+//
+// The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
 func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "exclude", "expansions", "max_results",
@@ -611,6 +620,13 @@ func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]
 	return tweets.Parse(response)
 }
 
+// Returns Tweets mentioning a single user specified by the requested user
+// ID. By default, the most recent ten Tweets are returned per request.
+// Using pagination, up to the most recent 800 Tweets can be retrieved.
+//
+// The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-mentions
 func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
@@ -636,6 +652,15 @@ func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[strin
 }
 
 // ** Tweet counts ** //
+
+// This endpoint is only available to those users who have been approved
+// for the `Academic Research product track`_.
+//
+// The full-archive search endpoint returns the complete history of public
+// Tweets matching a search query; since the first Tweet was created March
+// 26, 2006.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-all
 func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"end_time", "granularity", "next_token", "query",
@@ -648,6 +673,10 @@ func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) 
 	return c.get_request("tweets/counts/all", false, params, endpoint_parameters)
 }
 
+// The recent Tweet counts endpoint returns count of Tweets from the last
+// seven days that match a search query.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
 func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"end_time", "granularity", "query",
@@ -661,6 +690,11 @@ func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{
 }
 
 // ** Tweet lookup ** //
+
+// Returns a variety of information about a single Tweet specified by
+// the requested ID.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets-id
 func (c *Client) GetTweet(tweet_id string, oauth_1a bool, params map[string]interface{}) (*TweetResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
@@ -674,6 +708,10 @@ func (c *Client) GetTweet(tweet_id string, oauth_1a bool, params map[string]inte
 	return (&TweetResponse{}).Parse(response)
 }
 
+// Returns a variety of information about the Tweet specified by the
+// requested ID or list of IDs.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets
 func (c *Client) GetTweets(tweet_ids []string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"ids", "expansions", "media.fields", "place.fields",
@@ -706,11 +744,18 @@ func (c *Client) Block(target_user_id string) (*http.Response, error) {
 	)
 }
 
+// The request succeeds with no action when the user sends a request to a
+// user they're not blocking or have already unblocked.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/blocks/api-reference/delete-users-user_id-blocking
 func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
 	return c.delete_request(route)
 }
 
+// Returns a list of users who are blocked by the authenticating user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/users/blocks/api-reference/get-users-blocking
 func (c *Client) GetBlocked(params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
