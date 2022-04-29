@@ -1401,4 +1401,58 @@ func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{
 	return c.get_request(route, false, params, endpoint_parameters)
 }
 
+// ** Bookmarks ** //
+
+// Causes the authenticating user to Bookmark the target Tweet provided
+// in the request body.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/post-users-id-bookmarks
+func (c *Client) Bookmark(tweet_id string) (*http.Response, error) {
+	data := map[string]interface{}{
+		"tweet_id": tweet_id,
+	}
+
+	route := fmt.Sprintf("users/%s/bookmarks", c.userID)
+
+	return c.request(
+		"POST",
+		route,
+		data,
+	)
+}
+
+// Allows a user or authenticated user ID to remove a Bookmark of a
+// Tweet.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/delete-users-id-bookmarks-tweet_id
+func (c *Client) RemoveBookmark(tweet_id string) (*http.Response, error) {
+	route := fmt.Sprintf("users/%s/bookmarks/%s", c.userID, tweet_id)
+	return c.delete_request(route)
+}
+
+// Allows you to get an authenticated user's 800 most recent bookmarked
+// Tweets.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/get-users-id-bookmarks
+func (c *Client) GetBookmarks(params map[string]interface{}) (*TweetsResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "max_results", "media.fields",
+		"pagination_token", "place.fields", "poll.fields",
+		"tweet.fields", "user.fields",
+	}
+
+	route := fmt.Sprintf("users/%s/bookmarks", c.userID)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&TweetsResponse{}).Parse(response)
+}
+
 // func QueryMaker() string
