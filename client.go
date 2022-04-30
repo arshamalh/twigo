@@ -429,6 +429,36 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 	return users.Parse(response)
 }
 
+// Returns Quote Tweets for a Tweet specified by the requested Tweet ID.
+//
+// The Tweets returned by this endpoint count towards the Project-level
+// `Tweet cap`.
+//
+// https://developer.twitter.com/en/docs/twitter-api/tweets/quote-tweets/api-reference/get-tweets-id-quote_tweets
+func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+		"max_results", "pagination_token",
+	}
+
+	route := fmt.Sprintf("tweets/%s/quoted_tweets", tweet_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
+	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetQuoteTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
+}
+
 // ** Search tweets ** //
 
 // The full-archive search endpoint returns the complete history of public
