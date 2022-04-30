@@ -517,9 +517,7 @@ func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[strin
 // Tweet cap: https://developer.twitter.com/en/docs/projects/overview#tweet-cap
 //
 // pagination: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/paginate
-func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
-	// TODO: PAGINATION PROBLEM
-	// Pagination should be implimented, but It can't because of type of paginatino, it's totally different!
+func (c *Client) SearchAllTweets(query string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
 		"next_token", "place.fields", "poll.fields", "query",
@@ -529,13 +527,22 @@ func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*
 	route := "tweets/search/all"
 	if params == nil {
 		params = make(map[string]interface{})
+	} else if val, ok := params["pagination_token"]; ok {
+		params["next_token"] = val
+		delete(params, "pagination_token")
 	}
+
 	params["query"] = query
+
 	response, err := c.get_request(route, false, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
-	return (&TweetsResponse{}).Parse(response)
+
+	caller_data := CallerData{ID: query, OAuth_1a: oauth_1a, Params: params}
+	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // The recent search endpoint returns Tweets from the last seven days that match a search query.
@@ -608,7 +615,11 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 	route := "tweets/search/recent"
 	if params == nil {
 		params = make(map[string]interface{})
+	} else if val, ok := params["pagination_token"]; ok {
+		params["next_token"] = val
+		delete(params, "pagination_token")
 	}
+
 	params["query"] = query
 
 	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
@@ -617,7 +628,9 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 	}
 
 	caller_data := CallerData{ID: query, OAuth_1a: oauth_1a, Params: params}
-	return (&TweetsResponse{Caller: c.SearchRecentTweets, CallerData: caller_data}).Parse(response)
+	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // ** Timelines ** //
