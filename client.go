@@ -1154,6 +1154,29 @@ func (c *Client) GetSpaceBuyers(space_id string, params map[string]interface{}) 
 	return (&UsersResponse{}).Parse(response)
 }
 
+// Returns Tweets shared in the requested Spaces.
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/lookup/api-reference/get-spaces-id-tweets
+func (c *Client) GetSpaceTweets(space_id string, params map[string]interface{}) (*TweetsResponse, error) {
+	endpoint_parameters := []string{
+		"expansions", "media.fields", "place.fields",
+		"poll.fields", "tweet.fields", "user.fields",
+	}
+
+	route := fmt.Sprintf("spaces/%s/tweets", space_id)
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&TweetsResponse{}).Parse(response)
+}
+
 // ** List Tweets lookup ** //
 
 // Returns a list of Tweets from the specified List.
