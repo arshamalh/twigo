@@ -45,8 +45,10 @@ func (c *Client) request(method, route string, params map[string]interface{}) (*
 	return response, err
 }
 
+// Sends a get request with specified params
+//
+// oauth_1a ==> Whether or not to use OAuth 1.0a User context
 func (c *Client) get_request(route string, oauth_1a bool, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
-	// oauth_1a ==> Whether or not to use OAuth 1.0a User context
 	parsedRoute, err := url.Parse(route)
 	if err != nil {
 		return nil, err
@@ -516,6 +518,8 @@ func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[strin
 //
 // pagination: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/paginate
 func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
+	// TODO: PAGINATION PROBLEM
+	// Pagination should be implimented, but It can't because of type of paginatino, it's totally different!
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
 		"next_token", "place.fields", "poll.fields", "query",
@@ -787,6 +791,7 @@ func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/blocks/api-reference/get-users-blocking
 func (c *Client) GetBlocked(params map[string]interface{}) (*UsersResponse, error) {
+	// TODO: PAGINATION PROBLEM
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
@@ -927,7 +932,8 @@ func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
 // Returns a list of users who are muted by the authenticating user.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/mutes/api-reference/get-users-muting
-func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetMuted(params map[string]interface{}) (*MutedUsersResponse, error) {
+	// TODO: PAGINATION PROBLEM
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
@@ -938,16 +944,15 @@ func (c *Client) GetMuted(oauth_1a bool, params map[string]interface{}) (*UsersR
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, true, params, endpoint_parameters)
+	response, err := c.get_request(route, false, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Needs pagination => It doesn't get an string!
-	// caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
-	// users := &UsersResponse{Caller: c.GetMuted, CallerData: caller_data}
+	caller_data := CallerData{ID: "", OAuth_1a: false, Params: params}
+	users := &MutedUsersResponse{Caller: c.GetMuted, CallerData: caller_data}
 
-	return (&UsersResponse{}).Parse(response)
+	return users.Parse(response)
 }
 
 // ** User lookup ** //
@@ -1557,7 +1562,7 @@ func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{
 // in the request body.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/post-users-id-bookmarks
-func (c *Client) Bookmark(tweet_id string) (*http.Response, error) {
+func (c *Client) BookmarkTweet(tweet_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"tweet_id": tweet_id,
 	}
@@ -1584,7 +1589,7 @@ func (c *Client) RemoveBookmark(tweet_id string) (*http.Response, error) {
 // Tweets.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/get-users-id-bookmarks
-func (c *Client) GetBookmarks(params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetBookmarkedTweets(params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "media.fields",
 		"pagination_token", "place.fields", "poll.fields",

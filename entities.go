@@ -187,6 +187,31 @@ func (r *UsersResponse) NextPage() (*UsersResponse, error) {
 	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
+type MutedUsersResponse struct {
+	Data       []User
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	Meta       MetaEntity
+	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(map[string]interface{}) (*MutedUsersResponse, error)
+}
+
+func (r *MutedUsersResponse) Parse(raw_response *http.Response) (*MutedUsersResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
+
+func (r *MutedUsersResponse) NextPage() (*MutedUsersResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.Params)
+}
+
 type SpaceResponse struct {
 	Data       Space
 	Includes   IncludesEntity
