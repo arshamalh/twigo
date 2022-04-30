@@ -147,6 +147,31 @@ func (r *TweetsResponse) NextPage() (*TweetsResponse, error) {
 	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
+type BookmarkedTweetsResponse struct {
+	Data       []Tweet
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	Meta       MetaEntity
+	RateLimits RateLimits
+	CallerData CallerData
+	Caller     func(map[string]interface{}) (*BookmarkedTweetsResponse, error)
+}
+
+func (r *BookmarkedTweetsResponse) Parse(raw_response *http.Response) (*BookmarkedTweetsResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
+
+func (r *BookmarkedTweetsResponse) NextPage() (*BookmarkedTweetsResponse, error) {
+	if r.Meta.NextToken == "" {
+		return nil, fmt.Errorf("no next page")
+	}
+	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
+	return r.Caller(r.CallerData.Params)
+}
+
 type UserResponse struct {
 	Data       User
 	Includes   IncludesEntity

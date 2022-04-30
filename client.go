@@ -1602,7 +1602,7 @@ func (c *Client) RemoveBookmark(tweet_id string) (*http.Response, error) {
 // Tweets.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/get-users-id-bookmarks
-func (c *Client) GetBookmarkedTweets(params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetBookmarkedTweets(params map[string]interface{}) (*BookmarkedTweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "media.fields",
 		"pagination_token", "place.fields", "poll.fields",
@@ -1620,7 +1620,10 @@ func (c *Client) GetBookmarkedTweets(params map[string]interface{}) (*TweetsResp
 		return nil, err
 	}
 
-	return (&TweetsResponse{}).Parse(response)
+	caller_data := CallerData{ID: "", OAuth_1a: false, Params: params}
+	tweets := &BookmarkedTweetsResponse{Caller: c.GetBookmarkedTweets, CallerData: caller_data}
+
+	return tweets.Parse(response)
 }
 
 // func QueryMaker() string
