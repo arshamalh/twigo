@@ -1057,6 +1057,10 @@ func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params m
 }
 
 // ** Spaces ** //
+
+// Return live or scheduled Spaces matching your specified search terms
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/search/api-reference/get-spaces-search
 func (c *Client) SearchSpaces(query string, params map[string]interface{}) (*SpacesResponse, error) {
 	endpoint_parameters := []string{
 		"query", "expansions", "max_results",
@@ -1074,6 +1078,11 @@ func (c *Client) SearchSpaces(query string, params map[string]interface{}) (*Spa
 	return (&SpacesResponse{}).Parse(response)
 }
 
+// Returns details about multiple live or scheduled Spaces.
+//
+// Up to 100 comma-separated Space IDs can be looked up using this method.
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/lookup/api-reference/get-spaces
 func (c *Client) GetSpacesBySpaceIDs(space_ids []string, params map[string]interface{}) (*SpacesResponse, error) {
 	endpoint_parameters := []string{
 		"ids", "user_ids", "expansions", "space.fields", "user.fields",
@@ -1090,6 +1099,11 @@ func (c *Client) GetSpacesBySpaceIDs(space_ids []string, params map[string]inter
 	return (&SpacesResponse{}).Parse(response)
 }
 
+// Returns details about multiple live or scheduled Spaces created by the
+// specified user IDs.
+// Up to 100 comma-separated user IDs can be looked up using this method.
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/lookup/api-reference/get-spaces-by-creator-ids
 func (c *Client) GetSpacesByCreatorIDs(creator_ids []string, params map[string]interface{}) (*SpacesResponse, error) {
 	endpoint_parameters := []string{
 		"ids", "user_ids", "expansions", "space.fields", "user.fields",
@@ -1106,6 +1120,10 @@ func (c *Client) GetSpacesByCreatorIDs(creator_ids []string, params map[string]i
 	return (&SpacesResponse{}).Parse(response)
 }
 
+// Returns a variety of information about a single Space specified by the
+// requested ID.
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/lookup/api-reference/get-spaces-id
 func (c *Client) GetSpace(space_id string, params map[string]interface{}) (*SpaceResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "space.fields", "user.fields",
@@ -1118,6 +1136,11 @@ func (c *Client) GetSpace(space_id string, params map[string]interface{}) (*Spac
 	return (&SpaceResponse{}).Parse(response)
 }
 
+// Returns a list of user who purchased a ticket to the requested Space.
+// You must authenticate the request using the Access Token of the creator
+// of the requested Space.
+//
+// https://developer.twitter.com/en/docs/twitter-api/spaces/lookup/api-reference/get-spaces-id-buyers
 func (c *Client) GetSpaceBuyers(space_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
@@ -1132,6 +1155,10 @@ func (c *Client) GetSpaceBuyers(space_id string, params map[string]interface{}) 
 }
 
 // ** List Tweets lookup ** //
+
+// Returns a list of Tweets from the specified List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-tweets/api-reference/get-lists-id-tweets
 func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1155,6 +1182,10 @@ func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]
 }
 
 // ** List follows ** //
+
+// Enables the authenticated user to follow a List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/post-users-id-followed-lists
 func (c *Client) FollowList(list_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"list_id": list_id,
@@ -1169,11 +1200,17 @@ func (c *Client) FollowList(list_id string) (*http.Response, error) {
 	)
 }
 
+// Enables the authenticated user to unfollow a List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/delete-users-id-followed-lists-list_id
 func (c *Client) UnfollowList(list_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/followed_lists/%s", c.userID, list_id)
 	return c.delete_request(route)
 }
 
+// Returns a list of users who are followers of the specified List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-lists-id-followers
 func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1197,6 +1234,9 @@ func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[stri
 	return users.Parse(response)
 }
 
+// Returns all Lists a specified user follows.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-users-id-followed_lists
 func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1221,6 +1261,10 @@ func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[stri
 }
 
 // ** List lookup ** //
+
+// Returns the details of a specified List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-lookup/api-reference/get-lists-id
 func (c *Client) GetList(list_id string, oauth_1a bool, params map[string]interface{}) (*ListResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "list.fields", "user.fields",
@@ -1233,6 +1277,9 @@ func (c *Client) GetList(list_id string, oauth_1a bool, params map[string]interf
 	return (&ListResponse{}).Parse(response)
 }
 
+// Returns all Lists owned by the specified user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-lookup/api-reference/get-users-id-owned_lists
 func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1257,6 +1304,10 @@ func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]
 }
 
 // ** List members ** //
+
+// Enables the authenticated user to add a member to a List they own.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/post-lists-id-members
 func (c *Client) AddListMemeber(list_id, user_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"user_id": user_id,
@@ -1271,11 +1322,17 @@ func (c *Client) AddListMemeber(list_id, user_id string) (*http.Response, error)
 	)
 }
 
+// Enables the authenticated user to remove a member from a List they own.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/delete-lists-id-members-user_id
 func (c *Client) RemoveListMember(list_id, user_id string) (*http.Response, error) {
 	route := fmt.Sprintf("lists/%s/members/%s", list_id, user_id)
 	return c.delete_request(route)
 }
 
+// Returns a list of users who are members of the specified List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/get-lists-id-members
 func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1299,6 +1356,9 @@ func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string
 	return users.Parse(response)
 }
 
+// Returns all Lists a specified user is a member of.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/get-users-id-list_memberships
 func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
@@ -1323,6 +1383,10 @@ func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[st
 }
 
 // ** Manage Lists ** //
+
+// Enables the authenticated user to create a List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/manage-lists/api-reference/post-lists
 func (c *Client) CreateList(name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"name":        name,
@@ -1339,6 +1403,10 @@ func (c *Client) CreateList(name string, description string, private bool, param
 	)
 }
 
+// Enables the authenticated user to update the meta data of a
+// specified List that they own.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/manage-lists/api-reference/put-lists-id
 func (c *Client) UpdateList(list_id string, name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
 	data := map[string]interface{}{
 		"name":        name,
@@ -1355,12 +1423,19 @@ func (c *Client) UpdateList(list_id string, name string, description string, pri
 	)
 }
 
+// Enables the authenticated user to delete a List that they own.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/manage-lists/api-reference/delete-lists-id
 func (c *Client) DeleteList(list_id string) (*http.Response, error) {
 	route := fmt.Sprintf("lists/%s", list_id)
 	return c.delete_request(route)
 }
 
 // ** Pinned Lists ** //
+
+// Enables the authenticated user to pin a List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/post-users-id-pinned-lists
 func (c *Client) PinList(list_id string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"list_id": list_id,
@@ -1375,11 +1450,17 @@ func (c *Client) PinList(list_id string) (*http.Response, error) {
 	)
 }
 
+// Enables the authenticated user to unpin a List.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/delete-users-id-pinned-lists-list_id
 func (c *Client) UnpinList(list_id string) (*http.Response, error) {
 	route := fmt.Sprintf("users/%s/pinned_lists/%s", c.userID, list_id)
 	return c.delete_request(route)
 }
 
+// Returns the Lists pinned by a specified user.
+//
+// https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/get-users-id-pinned_lists
 func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "list.fields", "user.fields",
@@ -1393,6 +1474,16 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, 
 }
 
 // ** Batch Compliance ** //
+
+// Creates a new compliance job for Tweet IDs or user IDs.
+//
+// A compliance job will contain an ID and a destination URL. The
+// destination URL represents the location that contains the list of IDs
+// consumed by your app.
+//
+// You can run one batch job at a time.
+//
+// https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/post-compliance-jobs
 func (c *Client) CreateComplianceJobs(job_type, name, resumable string) (*http.Response, error) {
 	data := map[string]interface{}{
 		"type": job_type,
@@ -1413,11 +1504,17 @@ func (c *Client) CreateComplianceJobs(job_type, name, resumable string) (*http.R
 	)
 }
 
+// Get a single compliance job with the specified ID.
+//
+// https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs-id
 func (c *Client) GetComplianceJob(job_id string) (*http.Response, error) {
 	route := fmt.Sprintf("compliance/jobs/%s", job_id)
 	return c.get_request(route, false, nil, nil)
 }
 
+// Returns a list of recent compliance jobs.
+//
+// https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs
 func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{}) (*http.Response, error) {
 	endpoint_parameters := []string{
 		"type", "status",
