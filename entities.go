@@ -233,8 +233,6 @@ type SpacesResponse struct {
 	Errors     []ErrorEntity
 	Meta       MetaEntity
 	RateLimits RateLimits
-	CallerData CallerData
-	Caller     func(string, bool, map[string]interface{}) (*SpacesResponse, error)
 }
 
 func (r *SpacesResponse) Parse(raw_response *http.Response) (*SpacesResponse, error) {
@@ -242,14 +240,6 @@ func (r *SpacesResponse) Parse(raw_response *http.Response) (*SpacesResponse, er
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
-}
-
-func (r *SpacesResponse) NextPage() (*SpacesResponse, error) {
-	if r.Meta.NextToken == "" {
-		return nil, fmt.Errorf("no next page")
-	}
-	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
-	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
 }
 
 type ListResponse struct {
