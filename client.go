@@ -77,6 +77,8 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 		}
 
 	}
+
+	// This comment only exists on the dev branch
 	parsedRoute.RawQuery = parameters.Encode()
 	fullRoute := base_route + parsedRoute.String()
 	fmt.Println("Route:>> ", fullRoute)
