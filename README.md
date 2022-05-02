@@ -28,8 +28,9 @@ twigo.NewClient(
     "ConsumerSecret",
     "AccessToken",
     "AccessTokenSecret",
-    // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory, but would be better.
-    // TODO: Also we are going to add bearer_token finder.
+    // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory.
+    // We'll find bearer token automatically if it's not specified.
+    // Also, you can use twigo.BearerFinder() function.
     "BearerToken",
 )
 ```
