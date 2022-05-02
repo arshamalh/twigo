@@ -57,7 +57,7 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	parameters := url.Values{}
 	for param_name, param_value := range params {
 		if !contains(endpoint_parameters, param_name) {
-			fmt.Printf(" it seems endpoint parameter '%s' is not supported", param_name)
+			fmt.Printf("it seems endpoint parameter '%s' is not supported", param_name)
 		}
 		switch param_valt := param_value.(type) {
 		case int:
@@ -79,9 +79,7 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	}
 	parsedRoute.RawQuery = parameters.Encode()
 	fullRoute := base_route + parsedRoute.String()
-	fmt.Println("Route:>> ", fullRoute)
-	//%% Conditions below will change oauth kind depend on the specified data in client initialization.
-	//%% But they seems wrong.
+
 	if c.read_only_access {
 		oauth_1a = false
 	}
