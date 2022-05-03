@@ -55,6 +55,8 @@ tweet := response.Data
 If the tweet doesn't exist or it's from a suspended account, 
 we will return an empty struct instead, like this:
 
+You should get tweet.ID and see if it's a "" or not.
+
 ```go
 &twigo.TweetResponse{
   Data: twigo.Tweet{
