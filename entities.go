@@ -45,16 +45,17 @@ type Poll struct{}
 type Place struct{}
 type Media struct{}
 type Tweet struct {
-	ID               string   `json:"id"`
-	Text             string   `json:"text"`
-	CreatedAt        string   `json:"created_at"`
-	AuthorID         string   `json:"author_id"`
-	ConversationID   string   `json:"conversation_id"`
-	InReplyToUserID  string   `json:"in_reply_to_user_id"`
-	ReferencedTweets []string `json:"referenced_tweets"`
-	Lang             string   `json:"lang"`
-	ReplySettings    string   `json:"reply_settings"`
-	Source           string   `json:"source"`
+	ID               string         `json:"id"`
+	Text             string         `json:"text"`
+	CreatedAt        string         `json:"created_at"`
+	AuthorID         string         `json:"author_id"`
+	ConversationID   string         `json:"conversation_id"`
+	InReplyToUserID  string         `json:"in_reply_to_user_id"`
+	ReferencedTweets []string       `json:"referenced_tweets"`
+	Lang             string         `json:"lang"`
+	ReplySettings    string         `json:"reply_settings"`
+	Source           string         `json:"source"`
+	PublicMetrics    map[string]int `json:"public_metrics"`
 	// And more...
 }
 

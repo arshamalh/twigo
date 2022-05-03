@@ -34,7 +34,87 @@ twigo.NewClient(
     "BearerToken",
 )
 ```
-And use any function you need, for example:
+
+And use any function you need, for example, get a tweet like this:
+
+```go
+response, _ := client.GetTweet(tweet_id, false, nil)
+fmt.Printf("%#v\n", response)
+tweet := response.Data
+```
+
+Making a tweet, as easy as below:
+
+```go
+client.CreateTweet("This is a test tweet", nil)
+```
+
+Retweeting and Liking a tweet:
+
+```go
+client.Retweet("1516784368601153548")
+client.Like("1431751228145426438")
+```
+
+Or Maybe deleting your like and retweet:
+
+```go
+client.UnRetweet("1516784368601153548")
+client.Unlike("1516784368601153548")
+```
+
+**Simple, right?**
+
+### Rate limits
+How many actions can we do?
+
+You can simpy read RateLimits attribute on the Response!
+```go
+  RateLimits:{
+    Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
+    Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
+    ResetTimestamp:1650553033 // Reset (charge up) remaining calls in this timestamp.
+  }
+```
+
+### More examples:
+
+Passing some extra fields and params:
+
+```go
+fields := map[string]interface{}{"tweet.fields": []string{"author_id", "created_at", "public_metrics"}}
+response, _ := client.GetTweet(tweet_id, false, fields)
+fmt.Printf("%#v\n", response)
+tweet := response.Data
+```
+
+If the tweet doesn't exist or it's from a suspended account, 
+twigo will return an empty struct instead, 
+You should get tweet.ID and see if it's a "" or not.
+
+```go
+&twigo.TweetResponse{
+  Data: twigo.Tweet{
+    ID:"", 
+    Text:"", 
+    PublicMetrics:map[string]int(nil)
+    // Other fields
+  }, 
+  Meta: twigo.MetaEntity{
+    ResultCount:0, 
+    NextToken:""
+    // Other fields
+  }, 
+  RateLimits: twigo.RateLimits{
+    Limit:300, 
+    Remaining:294, 
+    ResetTimestamp:1651585436
+  }
+}
+```
+
+You can get Liking users: (users who liked a tweet)
+
 ```go
 response, err := client.GetLikingUsers(
   "1431751228145426438", 
@@ -49,7 +129,9 @@ if err != nil {
 
 fmt.Printf("%+v\n", response)
 ```
+
 And result will be a Go struct like this:
+
 ```Go
 {
   Data:[
@@ -70,10 +152,8 @@ And result will be a Go struct like this:
   Errors:[] 
   Meta:{
     ResultCount:5 
-    NewestID: 
-    OldestID: 
-    PreviousToken: 
     NextToken:7140dibdnow9c7btw480y5xgmlpwtbsh4fyqnqmwz9k4w
+    // And more...
   }
   RateLimits:{
     Limit:75
@@ -83,7 +163,8 @@ And result will be a Go struct like this:
 }
 ```
 
-More examples:
+You can get some users by their username or by their IDs:
+
 ```go
 response, err := client.GetUsersByUsernames(
   []string{"arshamalh", "elonmusk", "someone_else"}, 
@@ -91,21 +172,20 @@ response, err := client.GetUsersByUsernames(
   nil, // There is no param in this example.
 )
 ```
-Retweeting and Liking a tweet:
+
+Return all tweets a user have written in the last 30 minutes.
+
 ```go
-client.Retweet("1516784368601153548")
-client.Like("1431751228145426438")
+start_time := time.Now().UTC().Add(-30 * time.Minute)
+params := map[string]interface{}{"max_results": 5, "start_time": start_time}
+user_tweets, _ := bot.GetUserTweets(user_id, false, params)
+if len(user_tweets.Data) != 0 {
+  fmt.Printf("<<Some tweets found>>")
+  for _, tweet := range user_tweets.Data {
+		fmt.Printf("%#v\n", tweet)
+	}
+}
 ```
-Or Maybe deleting your like and retweet:
-```go
-client.UnRetweet("1516784368601153548")
-client.Unlike("1516784368601153548")
-```
-And finally! Tweeting! (creating tweet)
-```go
-client.CreateTweet("This is a test tweet", nil)
-```
-Simple, right?
 
 ### How to paginate over results?
 if your method is paginatable, you can paginate using NextPage method attached to the response, like this:
@@ -152,18 +232,6 @@ if err != nil {  // Is there any response at all?
     page_number++
   }
 }
-```
-
-### Rate limits
-How many actions can we do?
-
-You can simpy read RateLimits attribute on the Response!
-```go
-  RateLimits:{
-    Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
-    Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
-    ResetTimestamp:1650553033 // Reset (charge up) remaining calls in this timestamp.
-  }
 ```
 
 ## Contribution
