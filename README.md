@@ -43,6 +43,42 @@ fmt.Printf("%#v\n", response)
 tweet := response.Data
 ```
 
+Making a tweet, as easy as below:
+
+```go
+client.CreateTweet("This is a test tweet", nil)
+```
+
+Retweeting and Liking a tweet:
+
+```go
+client.Retweet("1516784368601153548")
+client.Like("1431751228145426438")
+```
+
+Or Maybe deleting your like and retweet:
+
+```go
+client.UnRetweet("1516784368601153548")
+client.Unlike("1516784368601153548")
+```
+
+**Simple, right?**
+
+### Rate limits
+How many actions can we do?
+
+You can simpy read RateLimits attribute on the Response!
+```go
+  RateLimits:{
+    Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
+    Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
+    ResetTimestamp:1650553033 // Reset (charge up) remaining calls in this timestamp.
+  }
+```
+
+### More examples:
+
 Passing some extra fields and params:
 
 ```go
@@ -53,8 +89,7 @@ tweet := response.Data
 ```
 
 If the tweet doesn't exist or it's from a suspended account, 
-we will return an empty struct instead, like this:
-
+twigo will return an empty struct instead, 
 You should get tweet.ID and see if it's a "" or not.
 
 ```go
@@ -67,7 +102,6 @@ You should get tweet.ID and see if it's a "" or not.
   }, 
   Meta: twigo.MetaEntity{
     ResultCount:0, 
-    NewestID:"",
     NextToken:""
     // Other fields
   }, 
@@ -79,7 +113,7 @@ You should get tweet.ID and see if it's a "" or not.
 }
 ```
 
-**More examples:**
+You can get Liking users: (users who liked a tweet)
 
 ```go
 response, err := client.GetLikingUsers(
@@ -118,10 +152,8 @@ And result will be a Go struct like this:
   Errors:[] 
   Meta:{
     ResultCount:5 
-    NewestID: 
-    OldestID: 
-    PreviousToken: 
     NextToken:7140dibdnow9c7btw480y5xgmlpwtbsh4fyqnqmwz9k4w
+    // And more...
   }
   RateLimits:{
     Limit:75
@@ -131,7 +163,7 @@ And result will be a Go struct like this:
 }
 ```
 
-More examples:
+You can get some users by their username or by their IDs:
 
 ```go
 response, err := client.GetUsersByUsernames(
@@ -140,28 +172,6 @@ response, err := client.GetUsersByUsernames(
   nil, // There is no param in this example.
 )
 ```
-
-Retweeting and Liking a tweet:
-
-```go
-client.Retweet("1516784368601153548")
-client.Like("1431751228145426438")
-```
-
-Or Maybe deleting your like and retweet:
-
-```go
-client.UnRetweet("1516784368601153548")
-client.Unlike("1516784368601153548")
-```
-
-And finally! Tweeting! (creating tweet)
-
-```go
-client.CreateTweet("This is a test tweet", nil)
-```
-
-**Simple, right?**
 
 Return all tweets a user have written in the last 30 minutes.
 
@@ -222,18 +232,6 @@ if err != nil {  // Is there any response at all?
     page_number++
   }
 }
-```
-
-### Rate limits
-How many actions can we do?
-
-You can simpy read RateLimits attribute on the Response!
-```go
-  RateLimits:{
-    Limit:75 // An static number depending on the endpoint that you are calling or your authentication method.
-    Remaining:74 // An dynamic method that decreases after each call, and will reset every once in a while.
-    ResetTimestamp:1650553033 // Reset (charge up) remaining calls in this timestamp.
-  }
 ```
 
 ## Contribution
