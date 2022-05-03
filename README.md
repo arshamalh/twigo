@@ -163,6 +163,20 @@ client.CreateTweet("This is a test tweet", nil)
 
 **Simple, right?**
 
+Return all tweets a user have written in the last 30 minutes.
+
+```go
+start_time := time.Now().UTC().Add(-30 * time.Minute)
+params := map[string]interface{}{"max_results": 5, "start_time": start_time}
+user_tweets, _ := bot.GetUserTweets(user_id, false, params)
+if len(user_tweets.Data) != 0 {
+  fmt.Printf("<<Some tweets found>>")
+  for _, tweet := range user_tweets.Data {
+		fmt.Printf("%#v\n", tweet)
+	}
+}
+```
+
 ### How to paginate over results?
 if your method is paginatable, you can paginate using NextPage method attached to the response, like this:
 
