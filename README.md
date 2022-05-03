@@ -34,7 +34,51 @@ twigo.NewClient(
     "BearerToken",
 )
 ```
-And use any function you need, for example:
+
+And use any function you need, for example, get a tweet like this:
+
+```go
+response, _ := client.GetTweet(tweet_id, false, nil)
+fmt.Printf("%#v\n", response)
+tweet := response.Data
+```
+
+Passing some extra fields and params:
+
+```go
+fields := map[string]interface{}{"tweet.fields": []string{"author_id", "created_at", "public_metrics"}}
+response, _ := client.GetTweet(tweet_id, false, fields)
+fmt.Printf("%#v\n", response)
+tweet := response.Data
+```
+
+If the tweet doesn't exist or it's from a suspended account, 
+we will return an empty struct instead, like this:
+
+```go
+&twigo.TweetResponse{
+  Data: twigo.Tweet{
+    ID:"", 
+    Text:"", 
+    PublicMetrics:map[string]int(nil)
+    // Other fields
+  }, 
+  Meta: twigo.MetaEntity{
+    ResultCount:0, 
+    NewestID:"",
+    NextToken:""
+    // Other fields
+  }, 
+  RateLimits: twigo.RateLimits{
+    Limit:300, 
+    Remaining:294, 
+    ResetTimestamp:1651585436
+  }
+}
+```
+
+**More examples:**
+
 ```go
 response, err := client.GetLikingUsers(
   "1431751228145426438", 
@@ -49,7 +93,9 @@ if err != nil {
 
 fmt.Printf("%+v\n", response)
 ```
+
 And result will be a Go struct like this:
+
 ```Go
 {
   Data:[
@@ -84,6 +130,7 @@ And result will be a Go struct like this:
 ```
 
 More examples:
+
 ```go
 response, err := client.GetUsersByUsernames(
   []string{"arshamalh", "elonmusk", "someone_else"}, 
@@ -91,21 +138,28 @@ response, err := client.GetUsersByUsernames(
   nil, // There is no param in this example.
 )
 ```
+
 Retweeting and Liking a tweet:
+
 ```go
 client.Retweet("1516784368601153548")
 client.Like("1431751228145426438")
 ```
+
 Or Maybe deleting your like and retweet:
+
 ```go
 client.UnRetweet("1516784368601153548")
 client.Unlike("1516784368601153548")
 ```
+
 And finally! Tweeting! (creating tweet)
+
 ```go
 client.CreateTweet("This is a test tweet", nil)
 ```
-Simple, right?
+
+**Simple, right?**
 
 ### How to paginate over results?
 if your method is paginatable, you can paginate using NextPage method attached to the response, like this:
