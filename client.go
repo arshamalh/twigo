@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -66,11 +67,9 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 			parameters.Add(param_name, param_valt)
 		case []string:
 			parameters.Add(param_name, strings.Join(param_valt, ","))
+		case time.Time:
+			parameters.Add(param_name, param_valt.Format(time.RFC3339))
 		// TODO: case for arrays of anything else not only string
-		// TODO: case datetime
-		// 	if param_value.tzinfo is not None:
-		// 		param_value = param_value.astimezone(datetime.timezone.utc)
-		// 	request_params[param_name] = param_value.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 		default:
 			return nil, fmt.Errorf("%s with value of %s is not supported, please contact us", param_name, param_value)
