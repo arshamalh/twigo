@@ -145,7 +145,7 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 // Reference
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets
-func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) CreateTweet(text string, params map[string]interface{}) (*TweetResponse, error) {
 	if params == nil {
 		params = make(map[string]interface{})
 	}
@@ -156,11 +156,17 @@ func (c *Client) CreateTweet(text string, params map[string]interface{}) (*http.
 		return nil, fmt.Errorf("text or media is required")
 	}
 
-	return c.request(
+	response, err := c.request(
 		"POST",
 		"tweets",
 		params,
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&TweetResponse{}).Parse(response)
 }
 
 // Allows an authenticated user ID to delete a Tweet
