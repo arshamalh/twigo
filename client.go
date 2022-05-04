@@ -1565,7 +1565,7 @@ func (c *Client) CreateList(name string, description string, private bool, param
 // specified List that they own.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/manage-lists/api-reference/put-lists-id
-func (c *Client) UpdateList(list_id string, name string, description string, private bool, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) UpdateList(list_id string, name string, description string, private bool, params map[string]interface{}) (*UpdateListResponse, error) {
 	data := map[string]interface{}{
 		"name":        name,
 		"description": description,
@@ -1574,11 +1574,13 @@ func (c *Client) UpdateList(list_id string, name string, description string, pri
 
 	route := fmt.Sprintf("lists/%s", list_id)
 
-	return c.request(
-		"PUT",
-		route,
-		data,
-	)
+	response, err := c.request("PUT", route, data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UpdateListResponse{}).Parse(response)
 }
 
 // Enables the authenticated user to delete a List that they own.

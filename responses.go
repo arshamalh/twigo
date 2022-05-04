@@ -174,3 +174,20 @@ func (r *BookmarkResponse) Parse(raw_response *http.Response) (*BookmarkResponse
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
 }
+
+type UpdateListResponse struct {
+	Data struct {
+		Updated bool `json:"updated"`
+	}
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	Meta       MetaEntity
+	RateLimits RateLimits
+}
+
+func (r *UpdateListResponse) Parse(raw_response *http.Response) (*UpdateListResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
