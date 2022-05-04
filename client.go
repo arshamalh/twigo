@@ -212,9 +212,13 @@ func (c *Client) Like(tweet_id string) (*http.Response, error) {
 // References
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/delete-users-id-likes-tweet_id
-func (c *Client) Unlike(tweet_id string) (*http.Response, error) {
+func (c *Client) Unlike(tweet_id string) (*UnLikeResponse, error) {
 	route := fmt.Sprintf("users/%s/likes/%s", c.userID, tweet_id)
-	return c.delete_request(route)
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+	return (&UnLikeResponse{}).Parse(response)
 }
 
 // Allows you to get information about a Tweet’s liking users.
@@ -383,9 +387,13 @@ func (c *Client) Retweet(tweet_id string) (*http.Response, error) {
 // References
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/retweets/api-reference/delete-users-id-retweets-tweet_id
-func (c *Client) UnRetweet(tweet_id string) (*http.Response, error) {
+func (c *Client) UnRetweet(tweet_id string) (*UnRetweetResponse, error) {
 	route := fmt.Sprintf("users/%s/retweets/%s", c.userID, tweet_id)
-	return c.delete_request(route)
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+	return (&UnRetweetResponse{}).Parse(response)
 }
 
 // Allows you to get information about who has Retweeted a Tweet.
@@ -792,9 +800,15 @@ func (c *Client) Block(target_user_id string) (*http.Response, error) {
 // user they're not blocking or have already unblocked.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/blocks/api-reference/delete-users-user_id-blocking
-func (c *Client) UnBlock(target_user_id string) (*http.Response, error) {
+func (c *Client) UnBlock(target_user_id string) (*UnBlockResponse, error) {
 	route := fmt.Sprintf("users/%s/blocking/%s", c.userID, target_user_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UnBlockResponse{}).Parse(response)
 }
 
 // Returns a list of users who are blocked by the authenticating user.
@@ -853,9 +867,15 @@ func (c *Client) FollowUser(target_user_id string, params map[string]interface{}
 // request to a user they're not following or have already unfollowed.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/delete-users-source_id-following
-func (c *Client) UnfollowUser(target_user_id string) (*http.Response, error) {
+func (c *Client) UnfollowUser(target_user_id string) (*UnFollowResponse, error) {
 	route := fmt.Sprintf("users/%s/following/%s", c.userID, target_user_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UnFollowResponse{}).Parse(response)
 }
 
 // Returns a list of users who are followers of the specified user ID.
@@ -934,9 +954,15 @@ func (c *Client) Mute(target_user_id string) (*http.Response, error) {
 // user they're not muting or have already unmuted.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/mutes/api-reference/delete-users-user_id-muting
-func (c *Client) UnMute(target_user_id string) (*http.Response, error) {
+func (c *Client) UnMute(target_user_id string) (*UnMuteResponse, error) {
 	route := fmt.Sprintf("users/%s/muting/%s", c.userID, target_user_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UnMuteResponse{}).Parse(response)
 }
 
 // Returns a list of users who are muted by the authenticating user.
@@ -1241,9 +1267,15 @@ func (c *Client) FollowList(list_id string) (*http.Response, error) {
 // Enables the authenticated user to unfollow a List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/delete-users-id-followed-lists-list_id
-func (c *Client) UnfollowList(list_id string) (*http.Response, error) {
+func (c *Client) UnfollowList(list_id string) (*UnFollowResponse, error) {
 	route := fmt.Sprintf("users/%s/followed_lists/%s", c.userID, list_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UnFollowResponse{}).Parse(response)
 }
 
 // Returns a list of users who are followers of the specified List.
@@ -1363,9 +1395,15 @@ func (c *Client) AddListMemeber(list_id, user_id string) (*http.Response, error)
 // Enables the authenticated user to remove a member from a List they own.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/delete-lists-id-members-user_id
-func (c *Client) RemoveListMember(list_id, user_id string) (*http.Response, error) {
+func (c *Client) RemoveListMember(list_id, user_id string) (*RemoveListMemberResponse, error) {
 	route := fmt.Sprintf("lists/%s/members/%s", list_id, user_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&RemoveListMemberResponse{}).Parse(response)
 }
 
 // Returns a list of users who are members of the specified List.
@@ -1464,9 +1502,15 @@ func (c *Client) UpdateList(list_id string, name string, description string, pri
 // Enables the authenticated user to delete a List that they own.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/manage-lists/api-reference/delete-lists-id
-func (c *Client) DeleteList(list_id string) (*http.Response, error) {
+func (c *Client) DeleteList(list_id string) (*DeleteResponse, error) {
 	route := fmt.Sprintf("lists/%s", list_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&DeleteResponse{}).Parse(response)
 }
 
 // ** Pinned Lists ** //
@@ -1491,9 +1535,15 @@ func (c *Client) PinList(list_id string) (*http.Response, error) {
 // Enables the authenticated user to unpin a List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/delete-users-id-pinned-lists-list_id
-func (c *Client) UnpinList(list_id string) (*http.Response, error) {
+func (c *Client) UnpinList(list_id string) (*UnPinResponse, error) {
 	route := fmt.Sprintf("users/%s/pinned_lists/%s", c.userID, list_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&UnPinResponse{}).Parse(response)
 }
 
 // Returns the Lists pinned by a specified user.
@@ -1590,9 +1640,15 @@ func (c *Client) BookmarkTweet(tweet_id string) (*http.Response, error) {
 // Tweet.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/bookmarks/api-reference/delete-users-id-bookmarks-tweet_id
-func (c *Client) RemoveBookmark(tweet_id string) (*http.Response, error) {
+func (c *Client) RemoveBookmark(tweet_id string) (*BookmarkResponse, error) {
 	route := fmt.Sprintf("users/%s/bookmarks/%s", c.userID, tweet_id)
-	return c.delete_request(route)
+
+	response, err := c.delete_request(route)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&BookmarkResponse{}).Parse(response)
 }
 
 // Allows you to get an authenticated user's 800 most recent bookmarked
