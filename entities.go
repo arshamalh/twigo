@@ -101,6 +101,18 @@ type List struct {
 	Description   string    `json:"description"`
 }
 
+type ComplianceJob struct {
+	ID                string    `json:"id"`
+	CreatedAt         time.Time `json:"created_at"`
+	Status            string    `json:"status"`
+	Type              string    `json:"type"`
+	Resumable         bool      `json:"resumable"`
+	DownloadExpiresAt time.Time `json:"download_expires_at"`
+	UploadUrl         string    `json:"upload_url"`
+	DownloadUrl       string    `json:"download_url"`
+	UploadExpiresAt   time.Time `json:"upload_expires_at"`
+}
+
 // *** Request struct *** //
 type CallerData struct {
 	ID       string

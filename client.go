@@ -1680,7 +1680,11 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, 
 // You can run one batch job at a time.
 //
 // https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/post-compliance-jobs
-func (c *Client) CreateComplianceJobs(job_type, name, resumable string) (*http.Response, error) {
+func (c *Client) CreateComplianceJob(job_type, name, resumable string) (*ComplianceJobResponse, error) {
+	if job_type != "tweets" && job_type != "users" {
+		return nil, fmt.Errorf("job_type must be either 'tweets' or 'users'")
+	}
+
 	data := map[string]interface{}{
 		"type": job_type,
 	}
@@ -1693,25 +1697,38 @@ func (c *Client) CreateComplianceJobs(job_type, name, resumable string) (*http.R
 
 	route := "compliance/jobs"
 
-	return c.request(
+	response, err := c.request(
 		"POST",
 		route,
 		data,
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&ComplianceJobResponse{}).Parse(response)
 }
 
 // Get a single compliance job with the specified ID.
 //
 // https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs-id
-func (c *Client) GetComplianceJob(job_id string) (*http.Response, error) {
+func (c *Client) GetComplianceJob(job_id string) (*ComplianceJobResponse, error) {
 	route := fmt.Sprintf("compliance/jobs/%s", job_id)
-	return c.get_request(route, false, nil, nil)
+
+	response, err := c.get_request(route, false, nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&ComplianceJobResponse{}).Parse(response)
 }
 
 // Returns a list of recent compliance jobs.
 //
 // https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs
-func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{}) (*ComplianceJobsResponse, error) {
 	endpoint_parameters := []string{
 		"type", "status",
 	}
@@ -1721,7 +1738,14 @@ func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{
 	params["type"] = job_type
 
 	route := "compliance/jobs"
-	return c.get_request(route, false, params, endpoint_parameters)
+
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&ComplianceJobsResponse{}).Parse(response)
 }
 
 // ** Bookmarks ** //

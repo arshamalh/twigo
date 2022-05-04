@@ -215,3 +215,33 @@ func (r *TweetsCountResponse) Parse(raw_response *http.Response) (*TweetsCountRe
 	r.RateLimits.Set(raw_response.Header)
 	return r, err
 }
+
+type ComplianceJobResponse struct {
+	Data       ComplianceJob
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	Meta       MetaEntity
+	RateLimits RateLimits
+}
+
+func (r *ComplianceJobResponse) Parse(raw_response *http.Response) (*ComplianceJobResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
+
+type ComplianceJobsResponse struct {
+	Data       []ComplianceJob
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	Meta       MetaEntity
+	RateLimits RateLimits
+}
+
+func (r *ComplianceJobsResponse) Parse(raw_response *http.Response) (*ComplianceJobsResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
