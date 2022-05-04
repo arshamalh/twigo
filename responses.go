@@ -3,6 +3,7 @@ package twigo
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type LikeResponse struct {
@@ -186,6 +187,29 @@ type UpdateListResponse struct {
 }
 
 func (r *UpdateListResponse) Parse(raw_response *http.Response) (*UpdateListResponse, error) {
+	err := json.NewDecoder(raw_response.Body).Decode(&r)
+	defer raw_response.Body.Close()
+	r.RateLimits.Set(raw_response.Header)
+	return r, err
+}
+
+type TweetsCountResponse struct {
+	Data struct {
+		End        time.Time `json:"end"`
+		Start      time.Time `json:"start"`
+		TweetCount int       `json:"tweet_count"`
+	}
+	Meta struct {
+		// TODO: Also there is a "meta" field in the response that is a object
+		TotalTweetCount int    `json:"total_tweet_count"`
+		NextToken       string `json:"next_token"`
+	}
+	Includes   IncludesEntity
+	Errors     []ErrorEntity
+	RateLimits RateLimits
+}
+
+func (r *TweetsCountResponse) Parse(raw_response *http.Response) (*TweetsCountResponse, error) {
 	err := json.NewDecoder(raw_response.Body).Decode(&r)
 	defer raw_response.Body.Close()
 	r.RateLimits.Set(raw_response.Header)

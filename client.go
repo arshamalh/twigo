@@ -756,23 +756,34 @@ func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[strin
 // 26, 2006.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-all
-func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) (*TweetsCountResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "granularity", "next_token", "query",
 		"since_id", "start_time", "until_id",
 	}
+
 	if params == nil {
 		params = make(map[string]interface{})
 	}
+
 	params["query"] = query
-	return c.get_request("tweets/counts/all", false, params, endpoint_parameters)
+
+	route := "tweets/counts/all"
+
+	response, err := c.get_request(route, false, params, endpoint_parameters)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&TweetsCountResponse{}).Parse(response)
 }
 
 // The recent Tweet counts endpoint returns count of Tweets from the last
 // seven days that match a search query.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent
-func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{}) (*http.Response, error) {
+func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{}) (*TweetsCountResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "granularity", "query",
 		"since_id", "start_time", "until_id",
@@ -781,7 +792,14 @@ func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{
 		params = make(map[string]interface{})
 	}
 	params["query"] = query
-	return c.get_request("tweets/counts/recent", false, params, endpoint_parameters)
+
+	response, err := c.get_request("tweets/counts/recent", false, params, endpoint_parameters)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return (&TweetsCountResponse{}).Parse(response)
 }
 
 // ** Tweet lookup ** //
