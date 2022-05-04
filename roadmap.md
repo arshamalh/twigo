@@ -1,13 +1,22 @@
 - [x] Parse remaining and total rate limit in the header
-- [ ] Create Tweet options and parameters
-- [ ] Functions docstring
-- [ ] Add suitable response 
+- [x] CreateTweet method options and parameters
+- [x] Functions docstring
+- [x] Add suitable responses
     - [x] for GET responses
-    - [ ] for PUT and POST and DELETE responses.
+    - [x] for DELETE responses.
+    - [x] for POST and PUT responses
+    - [x] for update list
+    - [x] for tweet counts
+    - [x] for compliance jobs
+    - [x] for create tweet
 - [ ] Includes
-- [ ] Errors
-- [ ] Pagination
+- [ ] Response Errors
+- [x] Pagination
+- [ ] Implement best authentication method depending on user input, and a method to set it.
 - [ ] Search Queries and QueryMaker
+- [x] Parse and Deparse times
+- [ ] Pass params easier, maybe use a Struct for them
 - [ ] Tests
 - [ ] Docs
+- [ ] Package Errors
 - [ ] API v1.1
