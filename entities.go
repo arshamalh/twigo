@@ -49,12 +49,12 @@ type Media struct{}
 type List struct {
 	ID            string    `json:"id"`
 	Name          string    `json:"name"`
-	CreatedAt     time.Time `json:"created_at"`
-	Private       bool      `json:"private"`
-	FollowerCount int       `json:"follower_count"`
-	MemberCount   int       `json:"member_count"`
-	OwnerID       string    `json:"owner_id"`
-	Description   string    `json:"description"`
+	CreatedAt     time.Time `json:"created_at,omitempty"`
+	Private       bool      `json:"private,omitempty"`
+	FollowerCount int       `json:"follower_count,omitempty"`
+	MemberCount   int       `json:"member_count,omitempty"`
+	OwnerID       string    `json:"owner_id,omitempty"`
+	Description   string    `json:"description,omitempty"`
 }
 
 type ComplianceJob struct {
