@@ -46,23 +46,6 @@ type Poll struct{}
 type Place struct{}
 type Media struct{}
 
-type Space struct {
-	ID               string    `json:"id"`
-	State            string    `json:"state"` // It's a enum actually, not a string, so maybe we should parse it
-	HostIDs          []string  `json:"host_ids"`
-	CreatedAt        time.Time `json:"created_at"`
-	CreatorID        string    `json:"creator_id"`
-	EndedAt          string    `json:"ended_at"`
-	Lang             string    `json:"lang"`
-	IsTicketed       bool      `json:"is_ticketed"`
-	InvitedUserIDs   []string  `json:"invited_user_ids"`
-	ParticipantCount int       `json:"participant_count"`
-	ScheduledStart   string    `json:"scheduled_start"`
-	SpeakerIDs       []string  `json:"speaker_ids"`
-	StartedAt        time.Time `json:"started_at"`
-	SubscriberCount  int       `json:"subscriber_count"`
-	// And more...
-}
 type List struct {
 	ID            string    `json:"id"`
 	Name          string    `json:"name"`

@@ -141,7 +141,7 @@ func (r *MutedUsersResponse) NextPage() (*MutedUsersResponse, error) {
 }
 
 type SpaceResponse struct {
-	Data       Space
+	Data       entities.Space
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -156,7 +156,7 @@ func (r *SpaceResponse) Parse(raw_response *http.Response) (*SpaceResponse, erro
 }
 
 type SpacesResponse struct {
-	Data       Space
+	Data       entities.Space
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
