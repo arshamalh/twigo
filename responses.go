@@ -421,7 +421,7 @@ func (r *TweetsCountResponse) Parse(raw_response *http.Response) (*TweetsCountRe
 }
 
 type ComplianceJobResponse struct {
-	Data       ComplianceJob
+	Data       entities.ComplianceJob
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -436,7 +436,7 @@ func (r *ComplianceJobResponse) Parse(raw_response *http.Response) (*ComplianceJ
 }
 
 type ComplianceJobsResponse struct {
-	Data       []ComplianceJob
+	Data       []entities.ComplianceJob
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
