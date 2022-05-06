@@ -76,7 +76,7 @@ func (r *BookmarkedTweetsResponse) NextPage() (*BookmarkedTweetsResponse, error)
 }
 
 type UserResponse struct {
-	Data       User
+	Data       entities.User
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -91,7 +91,7 @@ func (r *UserResponse) Parse(raw_response *http.Response) (*UserResponse, error)
 }
 
 type UsersResponse struct {
-	Data       []User
+	Data       []entities.User
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -116,7 +116,7 @@ func (r *UsersResponse) NextPage() (*UsersResponse, error) {
 }
 
 type MutedUsersResponse struct {
-	Data       []User
+	Data       []entities.User
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity

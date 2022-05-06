@@ -23,7 +23,7 @@ type ErrorEntity struct {
 }
 
 type IncludesEntity struct {
-	Users  []User           `json:"users"`
+	Users  []entities.User  `json:"users"`
 	Tweets []entities.Tweet `json:"tweets"`
 	Polls  []Poll           `json:"polls"` // Do you remember if "poll" in the client?
 	Places []Place          `json:"places"`
@@ -45,19 +45,6 @@ func (r *RateLimits) Set(header http.Header) {
 type Poll struct{}
 type Place struct{}
 type Media struct{}
-
-type User struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Username    string    `json:"username"`
-	CreatedAt   time.Time `json:"created_at"`
-	Protected   bool      `json:"protected"`
-	Location    string    `json:"location"`
-	URL         string    `json:"url"`
-	Description string    `json:"description"`
-	Verified    bool      `json:"verified"`
-	// And more...
-}
 
 type Space struct {
 	ID               string    `json:"id"`
