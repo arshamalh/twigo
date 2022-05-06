@@ -24,6 +24,7 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 			bearerToken,
 			true,
 			"",
+			OAuth_Default,
 		}, nil
 	}
 
@@ -58,5 +59,6 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		bearerToken,
 		false,
 		userID,
+		OAuth_Default,
 	}, err
 }

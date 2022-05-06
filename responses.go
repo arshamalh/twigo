@@ -32,7 +32,7 @@ type TweetsResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, bool, map[string]interface{}) (*TweetsResponse, error)
+	Caller     func(string, map[string]interface{}) (*TweetsResponse, error)
 }
 
 func (r *TweetsResponse) Parse(raw_response *http.Response) (*TweetsResponse, error) {
@@ -47,7 +47,7 @@ func (r *TweetsResponse) NextPage() (*TweetsResponse, error) {
 		return nil, fmt.Errorf("no next page")
 	}
 	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
-	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
+	return r.Caller(r.CallerData.ID, r.CallerData.Params)
 }
 
 type BookmarkedTweetsResponse struct {
@@ -97,7 +97,7 @@ type UsersResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, bool, map[string]interface{}) (*UsersResponse, error)
+	Caller     func(string, map[string]interface{}) (*UsersResponse, error)
 }
 
 func (r *UsersResponse) Parse(raw_response *http.Response) (*UsersResponse, error) {
@@ -112,7 +112,7 @@ func (r *UsersResponse) NextPage() (*UsersResponse, error) {
 		return nil, fmt.Errorf("no next page")
 	}
 	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
-	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
+	return r.Caller(r.CallerData.ID, r.CallerData.Params)
 }
 
 type MutedUsersResponse struct {
@@ -192,7 +192,7 @@ type ListsResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, bool, map[string]interface{}) (*ListsResponse, error)
+	Caller     func(string, map[string]interface{}) (*ListsResponse, error)
 }
 
 func (r *ListsResponse) Parse(raw_response *http.Response) (*ListsResponse, error) {
@@ -207,7 +207,7 @@ func (r *ListsResponse) NextPage() (*ListsResponse, error) {
 		return nil, fmt.Errorf("no next page")
 	}
 	r.CallerData.Params["pagination_token"] = r.Meta.NextToken
-	return r.Caller(r.CallerData.ID, r.CallerData.OAuth_1a, r.CallerData.Params)
+	return r.Caller(r.CallerData.ID, r.CallerData.Params)
 }
 
 type LikeResponse struct {

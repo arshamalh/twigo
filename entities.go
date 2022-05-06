@@ -33,7 +33,7 @@ type IncludesEntity struct {
 type RateLimits struct {
 	Limit          int   `json:"x-rate-limit"`
 	Remaining      int   `json:"x-rate-limit-remaining"`
-	ResetTimestamp int64 `json:"x-rate-limit-reset"`
+	ResetTimestamp int64 `json:"x-rate-limit-reset"` // Isn't this a time.Time?
 }
 
 func (r *RateLimits) Set(header http.Header) {
@@ -100,7 +100,6 @@ type List struct {
 
 // *** Request struct *** //
 type CallerData struct {
-	ID       string
-	OAuth_1a bool
-	Params   map[string]interface{}
+	ID     string
+	Params map[string]interface{}
 }
