@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/arshamalh/twigo/entities"
 )
 
 // *** Basic Entities *** //
@@ -21,17 +23,17 @@ type ErrorEntity struct {
 }
 
 type IncludesEntity struct {
-	Users  []User  `json:"users"`
-	Tweets []Tweet `json:"tweets"`
-	Polls  []Poll  `json:"polls"` // Do you remember if "poll" in the client?
-	Places []Place `json:"places"`
-	Media  []Media `json:"media"`
+	Users  []entities.User  `json:"users"`
+	Tweets []entities.Tweet `json:"tweets"`
+	Polls  []Poll           `json:"polls"` // Do you remember if "poll" in the client?
+	Places []Place          `json:"places"`
+	Media  []Media          `json:"media"`
 }
 
 type RateLimits struct {
 	Limit          int   `json:"x-rate-limit"`
 	Remaining      int   `json:"x-rate-limit-remaining"`
-	ResetTimestamp int64 `json:"x-rate-limit-reset"`
+	ResetTimestamp int64 `json:"x-rate-limit-reset"` // Isn't this a time.Time?
 }
 
 func (r *RateLimits) Set(header http.Header) {
@@ -40,80 +42,64 @@ func (r *RateLimits) Set(header http.Header) {
 	r.ResetTimestamp, _ = strconv.ParseInt(header.Get("X-Rate-Limit-Reset"), 10, 64)
 }
 
-type Poll struct{}
-type Place struct{}
-type Media struct{}
-type Tweet struct {
-	ID               string         `json:"id"`
-	Text             string         `json:"text"`
-	CreatedAt        time.Time      `json:"created_at"`
-	AuthorID         string         `json:"author_id"`
-	ConversationID   string         `json:"conversation_id"`
-	InReplyToUserID  string         `json:"in_reply_to_user_id"`
-	ReferencedTweets []string       `json:"referenced_tweets"`
-	Lang             string         `json:"lang"`
-	ReplySettings    string         `json:"reply_settings"`
-	Source           string         `json:"source"`
-	PublicMetrics    map[string]int `json:"public_metrics"`
-	// And more...
+type Place struct {
+	FullName        string     `json:"full_name"`
+	ID              string     `json:"id"`
+	ContainedWithin string     `json:"contained_within,omitempty"`
+	Country         string     `json:"country,omitempty"`
+	CountryCode     string     `json:"country_code,omitempty"`
+	Geo             IncludeGeo `json:"geo,omitempty"`
+	Name            string     `json:"name,omitempty"`
+	PlaceType       string     `json:"place_type,omitempty"`
 }
 
-type User struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Username    string    `json:"username"`
-	CreatedAt   time.Time `json:"created_at"`
-	Protected   bool      `json:"protected"`
-	Location    string    `json:"location"`
-	URL         string    `json:"url"`
-	Description string    `json:"description"`
-	Verified    bool      `json:"verified"`
-	// And more...
+type Media struct {
+	MediaKey         string         `json:"media_key"`
+	Type             string         `json:"type"`
+	DurationMs       int            `json:"duration_ms,omitempty"`
+	Height           int            `json:"height,omitempty"`
+	NonPublicMetrics map[string]int `json:"non_public_metrics,omitempty"`
+	OrganicMetrics   map[string]int `json:"organic_metrics,omitempty"`
+	PreviewImageUrl  string         `json:"preview_image_url,omitempty"`
+	PromotedMetrics  map[string]int `json:"promoted_metrics,omitempty"`
+	PublicMetrics    map[string]int `json:"public_metrics,omitempty"`
+	Width            int            `json:"width,omitempty"`
+	AltText          int            `json:"alt_text,omitempty"`
 }
 
-type Space struct {
-	ID               string    `json:"id"`
-	State            string    `json:"state"` // It's a enum actually, not a string, so maybe we should parse it
-	HostIDs          []string  `json:"host_ids"`
-	CreatedAt        time.Time `json:"created_at"`
-	CreatorID        string    `json:"creator_id"`
-	EndedAt          string    `json:"ended_at"`
-	Lang             string    `json:"lang"`
-	IsTicketed       bool      `json:"is_ticketed"`
-	InvitedUserIDs   []string  `json:"invited_user_ids"`
-	ParticipantCount int       `json:"participant_count"`
-	ScheduledStart   string    `json:"scheduled_start"`
-	SpeakerIDs       []string  `json:"speaker_ids"`
-	StartedAt        time.Time `json:"started_at"`
-	SubscriberCount  int       `json:"subscriber_count"`
-	// And more...
+type Poll struct {
+	ID              string       `json:"id"`
+	Options         []PollOption `json:"options"`
+	DurationMinutes int          `json:"duration_minutes,omitempty"`
+	EndDatetime     time.Time    `json:"end_datetime,omitempty"`
+	VotingStatus    string       `json:"voting_status,omitempty"`
 }
+
+type IncludeGeo struct {
+	Type       string      `json:"type"`
+	BBox       [4]float64  `json:"bbox"`
+	Properties interface{} `json:"properties"`
+}
+
+type PollOption struct {
+	Position int    `json:"position"`
+	Label    string `json:"label"`
+	Votes    int    `json:"votes"`
+}
+
 type List struct {
 	ID            string    `json:"id"`
 	Name          string    `json:"name"`
-	CreatedAt     time.Time `json:"created_at"`
-	Private       bool      `json:"private"`
-	FollowerCount int       `json:"follower_count"`
-	MemberCount   int       `json:"member_count"`
-	OwnerID       string    `json:"owner_id"`
-	Description   string    `json:"description"`
-}
-
-type ComplianceJob struct {
-	ID                string    `json:"id"`
-	CreatedAt         time.Time `json:"created_at"`
-	Status            string    `json:"status"`
-	Type              string    `json:"type"`
-	Resumable         bool      `json:"resumable"`
-	DownloadExpiresAt time.Time `json:"download_expires_at"`
-	UploadUrl         string    `json:"upload_url"`
-	DownloadUrl       string    `json:"download_url"`
-	UploadExpiresAt   time.Time `json:"upload_expires_at"`
+	CreatedAt     time.Time `json:"created_at,omitempty"`
+	Private       bool      `json:"private,omitempty"`
+	FollowerCount int       `json:"follower_count,omitempty"`
+	MemberCount   int       `json:"member_count,omitempty"`
+	OwnerID       string    `json:"owner_id,omitempty"`
+	Description   string    `json:"description,omitempty"`
 }
 
 // *** Request struct *** //
 type CallerData struct {
-	ID       string
-	OAuth_1a bool
-	Params   map[string]interface{}
+	ID     string
+	Params map[string]interface{}
 }

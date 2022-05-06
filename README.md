@@ -38,7 +38,7 @@ twigo.NewClient(
 And use any function you need, for example, get a tweet like this:
 
 ```go
-response, _ := client.GetTweet(tweet_id, false, nil)
+response, _ := client.GetTweet(tweet_id, nil)
 fmt.Printf("%#v\n", response)
 tweet := response.Data
 ```
@@ -83,7 +83,7 @@ Passing some extra fields and params:
 
 ```go
 fields := map[string]interface{}{"tweet.fields": []string{"author_id", "created_at", "public_metrics"}}
-response, _ := client.GetTweet(tweet_id, false, fields)
+response, _ := client.GetTweet(tweet_id, fields)
 fmt.Printf("%#v\n", response)
 tweet := response.Data
 ```
@@ -118,7 +118,6 @@ You can get Liking users: (users who liked a tweet)
 ```go
 response, err := client.GetLikingUsers(
   "1431751228145426438", 
-  false, // should we use oauth_1? Can be true, depend on your preferences, but maybe we will change it if needed.
   map[string]interface{}{
     "max_results": 5,
   })
@@ -168,7 +167,6 @@ You can get some users by their username or by their IDs:
 ```go
 response, err := client.GetUsersByUsernames(
   []string{"arshamalh", "elonmusk", "someone_else"}, 
-  true, // Also we suggest you to use false as default.
   nil, // There is no param in this example.
 )
 ```
@@ -178,7 +176,7 @@ Return all tweets a user have written in the last 30 minutes.
 ```go
 start_time := time.Now().UTC().Add(-30 * time.Minute)
 params := map[string]interface{}{"max_results": 5, "start_time": start_time}
-user_tweets, _ := bot.GetUserTweets(user_id, false, params)
+user_tweets, _ := bot.GetUserTweets(user_id, params)
 if len(user_tweets.Data) != 0 {
   fmt.Printf("<<Some tweets found>>")
   for _, tweet := range user_tweets.Data {
@@ -191,7 +189,7 @@ if len(user_tweets.Data) != 0 {
 if your method is paginatable, you can paginate using NextPage method attached to the response, like this:
 
 ```go
-response, _ := client.GetUserTweets("1216345203453452289", false, nil)
+response, _ := client.GetUserTweets("1216345203453452289", nil)
 for {
   fmt.Printf("%#v\n", response)
   response, err = response.NextPage()  // Here the magic happens! NextPage method attached to response
@@ -206,7 +204,7 @@ for {
 A little bit more complex example:
 
 ```go
-response, err := client.GetUserTweets("1216345203453452289", false, nil)
+response, err := client.GetUserTweets("1216345203453452289", nil)
 
 if err != nil {  // Is there any response at all?
   fmt.Println(err)

@@ -24,6 +24,7 @@ type Client struct {
 	bearerToken       string
 	read_only_access  bool
 	userID            string
+	oauth_type        OAuthType
 }
 
 // ** Requests ** //
@@ -49,7 +50,7 @@ func (c *Client) request(method, route string, params map[string]interface{}) (*
 // Sends a get request with specified params
 //
 // oauth_1a ==> Whether or not to use OAuth 1.0a User context
-func (c *Client) get_request(route string, oauth_1a bool, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
+func (c *Client) get_request(route string, oauth_type OAuthType, params map[string]interface{}, endpoint_parameters []string) (*http.Response, error) {
 	parsedRoute, err := url.Parse(route)
 	if err != nil {
 		return nil, err
@@ -57,7 +58,9 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 
 	parameters := url.Values{}
 	for param_name, param_value := range params {
-		if !contains(endpoint_parameters, param_name) {
+		if new_param_name := strings.Replace(param_name, "_", ".", 1); contains(endpoint_parameters, new_param_name) {
+			param_name = new_param_name
+		} else if !contains(endpoint_parameters, param_name) {
 			fmt.Printf("it seems endpoint parameter '%s' is not supported", param_name)
 		}
 		switch param_valt := param_value.(type) {
@@ -79,13 +82,7 @@ func (c *Client) get_request(route string, oauth_1a bool, params map[string]inte
 	parsedRoute.RawQuery = parameters.Encode()
 	fullRoute := base_route + parsedRoute.String()
 
-	if c.read_only_access {
-		oauth_1a = false
-	}
-	if c.bearerToken == "" {
-		oauth_1a = true
-	}
-	if oauth_1a {
+	if oauth_type == OAuth_1a {
 		//%% TODO: Should we define authorizedClient here? or tweepy is doing it wrong?
 		return c.authorizedClient.Get(fullRoute)
 	} else {
@@ -107,6 +104,26 @@ func (c *Client) delete_request(route string) (*http.Response, error) {
 		return nil, err
 	}
 	return c.authorizedClient.Do(request)
+}
+
+func (c *Client) SetOAuth(oauth_type OAuthType) *Client {
+	if c.read_only_access {
+		oauth_type = OAuth_2
+	}
+	if c.bearerToken == "" {
+		oauth_type = OAuth_1a
+	}
+	c.oauth_type = oauth_type
+	return c
+}
+
+func (c *Client) SetDefaultOAuth(caller string) *Client {
+	if doa, ok := DefaultOAuthes[caller]; ok {
+		c.oauth_type = doa
+	} else {
+		c.oauth_type = OAuth_2
+	}
+	return c
 }
 
 // ** Manage Tweets ** //
@@ -251,8 +268,6 @@ func (c *Client) Unlike(tweet_id string) (*LikeResponse, error) {
 //
 // tweet_id: Tweet ID of the Tweet to request liking users of.
 //
-// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
-//
 // params (keys):
 // 	"expansions", "media.fields", "place.fields",
 // 	"poll.fields", "tweet.fields", "user.fields",
@@ -261,7 +276,7 @@ func (c *Client) Unlike(tweet_id string) (*LikeResponse, error) {
 // References
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/get-tweets-id-liking_users
-func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetLikingUsers(tweet_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
@@ -274,12 +289,12 @@ func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[strin
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: tweet_id, Params: params}
 	users := &UsersResponse{Caller: c.GetLikingUsers, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -293,8 +308,6 @@ func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[strin
 //
 // tweet_id: User ID of the user to request liked Tweets for.
 //
-// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
-//
 // params (keys):
 // 	"expansions", "media.fields", "place.fields",
 // 	"poll.fields", "tweet.fields", "user.fields",
@@ -303,7 +316,7 @@ func (c *Client) GetLikingUsers(tweet_id string, oauth_1a bool, params map[strin
 // References
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/likes/api-reference/get-users-id-liked_tweets
-func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetLikedTweets(user_id string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "media.fields",
 		"pagination_token", "place.fields", "poll.fields",
@@ -314,12 +327,12 @@ func (c *Client) GetLikedTweets(user_id string, oauth_1a bool, params map[string
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetLikedTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -451,8 +464,6 @@ func (c *Client) UnRetweet(tweet_id string) (*RetweetResponse, error) {
 //
 // tweet_id: Tweet ID of the Tweet to request Retweeting users of.
 //
-// oauth_1a: Whether or not to use OAuth 1.0a. (use false for default)
-//
 // params (keys):
 //	"expansions", "media.fields", "place.fields",
 // 	"poll.fields", "tweet.fields", "user.fields",
@@ -461,7 +472,7 @@ func (c *Client) UnRetweet(tweet_id string) (*RetweetResponse, error) {
 // References
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/retweets/api-reference/get-tweets-id-retweeted_by
-func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetRetweeters(tweet_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
@@ -474,12 +485,12 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: tweet_id, Params: params}
 	users := &UsersResponse{Caller: c.GetRetweeters, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -491,7 +502,7 @@ func (c *Client) GetRetweeters(tweet_id string, oauth_1a bool, params map[string
 // `Tweet cap`.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/quote-tweets/api-reference/get-tweets-id-quote_tweets
-func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetQuoteTweets(tweet_id string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
@@ -504,12 +515,12 @@ func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[strin
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: tweet_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: tweet_id, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetQuoteTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -571,7 +582,7 @@ func (c *Client) GetQuoteTweets(tweet_id string, oauth_1a bool, params map[strin
 // Tweet cap: https://developer.twitter.com/en/docs/projects/overview#tweet-cap
 //
 // pagination: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/paginate
-func (c *Client) SearchAllTweets(query string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) SearchAllTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
 		"next_token", "place.fields", "poll.fields", "query",
@@ -588,12 +599,12 @@ func (c *Client) SearchAllTweets(query string, oauth_1a bool, params map[string]
 
 	params["query"] = query
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: query, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: query, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -659,7 +670,7 @@ func (c *Client) SearchAllTweets(query string, oauth_1a bool, params map[string]
 // operators: https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query
 //
 // Academic Research Project: https://developer.twitter.com/en/docs/projects
-func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) SearchRecentTweets(query string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
 		"next_token", "place.fields", "poll.fields", "query",
@@ -676,12 +687,12 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 
 	params["query"] = query
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: query, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: query, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -697,7 +708,7 @@ func (c *Client) SearchRecentTweets(query string, oauth_1a bool, params map[stri
 // The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
-func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetUserTweets(user_id string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "exclude", "expansions", "max_results",
 		"media.fields", "pagination_token", "place.fields",
@@ -710,12 +721,12 @@ func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetUserTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -728,7 +739,7 @@ func (c *Client) GetUserTweets(user_id string, oauth_1a bool, params map[string]
 // The Tweets returned by this endpoint count towards the Project-level `Tweet cap`.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-mentions
-func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetUserMentions(user_id string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"end_time", "expansions", "max_results", "media.fields",
 		"pagination_token", "place.fields", "poll.fields", "since_id",
@@ -741,12 +752,12 @@ func (c *Client) GetUserMentions(user_id string, oauth_1a bool, params map[strin
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetUserMentions, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -776,7 +787,7 @@ func (c *Client) GetAllTweetsCount(query string, params map[string]interface{}) 
 
 	route := "tweets/counts/all"
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 
 	if err != nil {
 		return nil, err
@@ -799,7 +810,7 @@ func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{
 	}
 	params["query"] = query
 
-	response, err := c.get_request("tweets/counts/recent", false, params, endpoint_parameters)
+	response, err := c.get_request("tweets/counts/recent", OAuth_2, params, endpoint_parameters)
 
 	if err != nil {
 		return nil, err
@@ -814,13 +825,13 @@ func (c *Client) GetRecentTweetsCount(query string, params map[string]interface{
 // the requested ID.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets-id
-func (c *Client) GetTweet(tweet_id string, oauth_1a bool, params map[string]interface{}) (*TweetResponse, error) {
+func (c *Client) GetTweet(tweet_id string, params map[string]interface{}) (*TweetResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("tweets/%s", tweet_id)
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -831,7 +842,7 @@ func (c *Client) GetTweet(tweet_id string, oauth_1a bool, params map[string]inte
 // requested ID or list of IDs.
 //
 // https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets
-func (c *Client) GetTweets(tweet_ids []string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetTweets(tweet_ids []string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"ids", "expansions", "media.fields", "place.fields",
 		"poll.fields", "tweet.fields", "user.fields",
@@ -840,7 +851,7 @@ func (c *Client) GetTweets(tweet_ids []string, oauth_1a bool, params map[string]
 		params = make(map[string]interface{})
 	}
 	params["ids"] = tweet_ids
-	response, err := c.get_request("tweets", oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request("tweets", c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -902,7 +913,7 @@ func (c *Client) GetBlocked(params map[string]interface{}) (*UsersResponse, erro
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, true, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -962,7 +973,7 @@ func (c *Client) UnfollowUser(target_user_id string) (*FollowResponse, error) {
 // Returns a list of users who are followers of the specified user ID.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-followers
-func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetUserFollowers(user_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
@@ -974,12 +985,12 @@ func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[stri
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	users := &UsersResponse{Caller: c.GetUserFollowers, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -988,7 +999,7 @@ func (c *Client) GetUserFollowers(user_id string, oauth_1a bool, params map[stri
 // Returns a list of users the specified user ID is following
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following
-func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetUserFollowing(user_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "tweet.fields",
 		"user.fields", "pagination_token",
@@ -1000,12 +1011,12 @@ func (c *Client) GetUserFollowing(user_id string, oauth_1a bool, params map[stri
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	users := &UsersResponse{Caller: c.GetUserFollowing, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -1067,12 +1078,12 @@ func (c *Client) GetMuted(params map[string]interface{}) (*MutedUsersResponse, e
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: "", OAuth_1a: false, Params: params}
+	caller_data := CallerData{ID: "", Params: params}
 	users := &MutedUsersResponse{Caller: c.GetMuted, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -1094,7 +1105,7 @@ func (c *Client) GetMe(oauth_1a bool, params map[string]interface{}) (*UserRespo
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1106,12 +1117,12 @@ func (c *Client) GetMe(oauth_1a bool, params map[string]interface{}) (*UserRespo
 // requested ID.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-id
-func (c *Client) GetUserByID(user_id string, oauth_1a bool, params map[string]interface{}) (*UserResponse, error) {
+func (c *Client) GetUserByID(user_id string, params map[string]interface{}) (*UserResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/%s", user_id)
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1122,12 +1133,12 @@ func (c *Client) GetUserByID(user_id string, oauth_1a bool, params map[string]in
 // requested username.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by-username-username
-func (c *Client) GetUserByUsername(username string, oauth_1a bool, params map[string]interface{}) (*UserResponse, error) {
+func (c *Client) GetUserByUsername(username string, params map[string]interface{}) (*UserResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/by/username/%s", username)
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1138,7 +1149,7 @@ func (c *Client) GetUserByUsername(username string, oauth_1a bool, params map[st
 // the requested IDs.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users
-func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetUsersByIDs(user_ids []string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
 		"tweet.fields", "user.fields",
@@ -1152,7 +1163,7 @@ func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[stri
 	}
 	params["ids"] = user_ids
 
-	response, err := c.get_request("users", oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request("users", c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1163,7 +1174,7 @@ func (c *Client) GetUsersByIDs(user_ids []string, oauth_1a bool, params map[stri
 // the requested usernames.
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by
-func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetUsersByUsernames(usernames []string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"usernames", "ids", "expansions",
 		"tweet.fields", "user.fields",
@@ -1177,7 +1188,7 @@ func (c *Client) GetUsersByUsernames(usernames []string, oauth_1a bool, params m
 	}
 	params["usernames"] = usernames
 
-	response, err := c.get_request("users/by", oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request("users/by", c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1199,7 +1210,7 @@ func (c *Client) SearchSpaces(query string, params map[string]interface{}) (*Spa
 		params = make(map[string]interface{})
 	}
 	params["query"] = query
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1220,7 +1231,7 @@ func (c *Client) GetSpacesBySpaceIDs(space_ids []string, params map[string]inter
 		params = make(map[string]interface{})
 	}
 	params["ids"] = space_ids
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1241,7 +1252,7 @@ func (c *Client) GetSpacesByCreatorIDs(creator_ids []string, params map[string]i
 		params = make(map[string]interface{})
 	}
 	params["user_ids"] = creator_ids
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1257,7 +1268,7 @@ func (c *Client) GetSpace(space_id string, params map[string]interface{}) (*Spac
 		"expansions", "space.fields", "user.fields",
 	}
 	route := fmt.Sprintf("spaces/%s", space_id)
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1275,7 +1286,7 @@ func (c *Client) GetSpaceBuyers(space_id string, params map[string]interface{}) 
 		"poll.fields", "tweet.fields", "user.fields",
 	}
 	route := fmt.Sprintf("spaces/%s/buyers", space_id)
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1297,7 +1308,7 @@ func (c *Client) GetSpaceTweets(space_id string, params map[string]interface{}) 
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1310,7 +1321,7 @@ func (c *Client) GetSpaceTweets(space_id string, params map[string]interface{}) 
 // Returns a list of Tweets from the specified List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-tweets/api-reference/get-lists-id-tweets
-func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]interface{}) (*TweetsResponse, error) {
+func (c *Client) GetListTweets(list_id string, params map[string]interface{}) (*TweetsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
@@ -1321,12 +1332,12 @@ func (c *Client) GetListTweets(list_id string, oauth_1a bool, params map[string]
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: list_id, Params: params}
 	tweets := &TweetsResponse{Caller: c.GetListTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
@@ -1375,7 +1386,7 @@ func (c *Client) UnfollowList(list_id string) (*FollowResponse, error) {
 // Returns a list of users who are followers of the specified List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-lists-id-followers
-func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetListFollowers(list_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
@@ -1387,12 +1398,12 @@ func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[stri
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: list_id, Params: params}
 	users := &UsersResponse{Caller: c.GetListFollowers, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -1401,7 +1412,7 @@ func (c *Client) GetListFollowers(list_id string, oauth_1a bool, params map[stri
 // Returns all Lists a specified user follows.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-users-id-followed_lists
-func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
+func (c *Client) GetFollowedLists(user_id string, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
@@ -1413,12 +1424,12 @@ func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[stri
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	lists := &ListsResponse{Caller: c.GetFollowedLists, CallerData: caller_data}
 
 	return lists.Parse(response)
@@ -1429,12 +1440,12 @@ func (c *Client) GetFollowedLists(user_id string, oauth_1a bool, params map[stri
 // Returns the details of a specified List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-lookup/api-reference/get-lists-id
-func (c *Client) GetList(list_id string, oauth_1a bool, params map[string]interface{}) (*ListResponse, error) {
+func (c *Client) GetList(list_id string, params map[string]interface{}) (*ListResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "list.fields", "user.fields",
 	}
 	route := fmt.Sprintf("lists/%s", list_id)
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1444,7 +1455,7 @@ func (c *Client) GetList(list_id string, oauth_1a bool, params map[string]interf
 // Returns all Lists owned by the specified user.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-lookup/api-reference/get-users-id-owned_lists
-func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
+func (c *Client) GetOwnedLists(user_id string, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
@@ -1456,12 +1467,12 @@ func (c *Client) GetOwnedLists(user_id string, oauth_1a bool, params map[string]
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	lists := &ListsResponse{Caller: c.GetOwnedLists, CallerData: caller_data}
 
 	return lists.Parse(response)
@@ -1509,7 +1520,7 @@ func (c *Client) RemoveListMember(list_id, user_id string) (*ListMemberResponse,
 // Returns a list of users who are members of the specified List.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/get-lists-id-members
-func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string]interface{}) (*UsersResponse, error) {
+func (c *Client) GetListMembers(list_id string, params map[string]interface{}) (*UsersResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"tweet.fields", "user.fields",
@@ -1521,12 +1532,12 @@ func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: list_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: list_id, Params: params}
 	users := &UsersResponse{Caller: c.GetListMembers, CallerData: caller_data}
 
 	return users.Parse(response)
@@ -1535,7 +1546,7 @@ func (c *Client) GetListMembers(list_id string, oauth_1a bool, params map[string
 // Returns all Lists a specified user is a member of.
 //
 // https://developer.twitter.com/en/docs/twitter-api/lists/list-members/api-reference/get-users-id-list_memberships
-func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[string]interface{}) (*ListsResponse, error) {
+func (c *Client) GetListMemberships(user_id string, params map[string]interface{}) (*ListsResponse, error) {
 	endpoint_parameters := []string{
 		"expansions", "max_results", "pagination_token",
 		"list.fields", "user.fields",
@@ -1547,12 +1558,12 @@ func (c *Client) GetListMemberships(user_id string, oauth_1a bool, params map[st
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, oauth_1a, params, endpoint_parameters)
+	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: user_id, OAuth_1a: oauth_1a, Params: params}
+	caller_data := CallerData{ID: user_id, Params: params}
 	lists := &ListsResponse{Caller: c.GetListMemberships, CallerData: caller_data}
 
 	return lists.Parse(response)
@@ -1668,7 +1679,7 @@ func (c *Client) GetPinnedLists(params map[string]interface{}) (*ListsResponse, 
 		"expansions", "list.fields", "user.fields",
 	}
 	route := fmt.Sprintf("users/%s/pinned_lists", c.userID)
-	response, err := c.get_request(route, true, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_1a, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -1722,7 +1733,7 @@ func (c *Client) CreateComplianceJob(job_type, name, resumable string) (*Complia
 func (c *Client) GetComplianceJob(job_id string) (*ComplianceJobResponse, error) {
 	route := fmt.Sprintf("compliance/jobs/%s", job_id)
 
-	response, err := c.get_request(route, false, nil, nil)
+	response, err := c.get_request(route, OAuth_2, nil, nil)
 
 	if err != nil {
 		return nil, err
@@ -1745,7 +1756,7 @@ func (c *Client) GetComplianceJobs(job_type string, params map[string]interface{
 
 	route := "compliance/jobs"
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 
 	if err != nil {
 		return nil, err
@@ -1812,12 +1823,12 @@ func (c *Client) GetBookmarkedTweets(params map[string]interface{}) (*Bookmarked
 		params = make(map[string]interface{})
 	}
 
-	response, err := c.get_request(route, false, params, endpoint_parameters)
+	response, err := c.get_request(route, OAuth_2, params, endpoint_parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	caller_data := CallerData{ID: "", OAuth_1a: false, Params: params}
+	caller_data := CallerData{ID: "", Params: params}
 	tweets := &BookmarkedTweetsResponse{Caller: c.GetBookmarkedTweets, CallerData: caller_data}
 
 	return tweets.Parse(response)
