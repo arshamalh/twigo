@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/arshamalh/twigo/entities"
 )
 
 // *** Basic Entities *** //
@@ -21,11 +23,11 @@ type ErrorEntity struct {
 }
 
 type IncludesEntity struct {
-	Users  []User  `json:"users"`
-	Tweets []Tweet `json:"tweets"`
-	Polls  []Poll  `json:"polls"` // Do you remember if "poll" in the client?
-	Places []Place `json:"places"`
-	Media  []Media `json:"media"`
+	Users  []User           `json:"users"`
+	Tweets []entities.Tweet `json:"tweets"`
+	Polls  []Poll           `json:"polls"` // Do you remember if "poll" in the client?
+	Places []Place          `json:"places"`
+	Media  []Media          `json:"media"`
 }
 
 type RateLimits struct {
@@ -43,20 +45,6 @@ func (r *RateLimits) Set(header http.Header) {
 type Poll struct{}
 type Place struct{}
 type Media struct{}
-type Tweet struct {
-	ID               string         `json:"id"`
-	Text             string         `json:"text"`
-	CreatedAt        time.Time      `json:"created_at"`
-	AuthorID         string         `json:"author_id"`
-	ConversationID   string         `json:"conversation_id"`
-	InReplyToUserID  string         `json:"in_reply_to_user_id"`
-	ReferencedTweets []string       `json:"referenced_tweets"`
-	Lang             string         `json:"lang"`
-	ReplySettings    string         `json:"reply_settings"`
-	Source           string         `json:"source"`
-	PublicMetrics    map[string]int `json:"public_metrics"`
-	// And more...
-}
 
 type User struct {
 	ID          string    `json:"id"`

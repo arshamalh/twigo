@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/arshamalh/twigo/entities"
 )
 
 // *** Response Entities *** //
 type TweetResponse struct {
-	Data       Tweet
+	Data       entities.Tweet
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -24,7 +26,7 @@ func (r *TweetResponse) Parse(raw_response *http.Response) (*TweetResponse, erro
 }
 
 type TweetsResponse struct {
-	Data       []Tweet
+	Data       []entities.Tweet
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
@@ -49,7 +51,7 @@ func (r *TweetsResponse) NextPage() (*TweetsResponse, error) {
 }
 
 type BookmarkedTweetsResponse struct {
-	Data       []Tweet
+	Data       []entities.Tweet
 	Includes   IncludesEntity
 	Errors     []ErrorEntity
 	Meta       MetaEntity
