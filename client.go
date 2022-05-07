@@ -117,6 +117,9 @@ func (c *Client) SetOAuth(oauth_type OAuthType) *Client {
 	return c
 }
 
+// TODO: Integrate this to get_request, for each request,
+// see if the oauth method is default, set it!, but we need the caller function?
+// or maybe we can call this function inside each method
 func (c *Client) SetDefaultOAuth(caller string) *Client {
 	if doa, ok := DefaultOAuthes[caller]; ok {
 		c.oauth_type = doa
