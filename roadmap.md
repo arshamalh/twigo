@@ -9,14 +9,17 @@
     - [x] for tweet counts
     - [x] for compliance jobs
     - [x] for create tweet
-- [ ] Includes
 - [ ] Response Errors
 - [x] Pagination
-- [ ] Implement best authentication method depending on user input, and a method to set it.
+- [x] Implement best authentication method depending on user input, and a method to set it.
+- [ ] Includes
 - [ ] Search Queries and QueryMaker
 - [x] Parse and Deparse times
-- [ ] Pass params easier, maybe use a Struct for them
+- [ ] Pass params easier
+    - [ ] make some structs that are getting all params, 
+    - [ ] make a method for those structs, to convert the struct to a map
+    - [ ] maybe 5 structs will be enough, but remove unnecessary fields in convertion, or don't? we will warn user!
 - [ ] Tests
-- [ ] Docs
+- [x] Docs
 - [ ] Package Errors
 - [ ] API v1.1
