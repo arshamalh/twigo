@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/arshamalh/twigo/utils"
 )
@@ -58,30 +55,7 @@ func (c *Client) get_request(route string, oauth_type OAuthType, params map[stri
 		return nil, err
 	}
 
-	parameters := url.Values{}
-	for param_name, param_value := range params {
-		if new_param_name := strings.Replace(param_name, "_", ".", 1); utils.Contains(endpoint_parameters, new_param_name) {
-			param_name = new_param_name
-		} else if !utils.Contains(endpoint_parameters, param_name) {
-			fmt.Printf("it seems endpoint parameter '%s' is not supported", param_name)
-		}
-		switch param_valt := param_value.(type) {
-		case int:
-			parameters.Add(param_name, strconv.Itoa(param_valt))
-		case string:
-			parameters.Add(param_name, param_valt)
-		case []string:
-			parameters.Add(param_name, strings.Join(param_valt, ","))
-		case time.Time:
-			parameters.Add(param_name, param_valt.Format(time.RFC3339))
-		// TODO: case for arrays of anything else not only string
-
-		default:
-			return nil, fmt.Errorf("%s with value of %s is not supported, please contact us", param_name, param_value)
-		}
-
-	}
-	parsedRoute.RawQuery = parameters.Encode()
+	parsedRoute.RawQuery = utils.QueryMaker(params, endpoint_parameters)
 	fullRoute := base_route + parsedRoute.String()
 
 	if oauth_type == OAuth_1a {
