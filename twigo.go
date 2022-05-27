@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/arshamalh/twigo/utils"
 	"github.com/mrjones/oauth"
 )
 
@@ -28,7 +29,7 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		}, nil
 	}
 
-	if bearer_token, err := BearerFinder(consumerKey, consumerSecret); bearerToken == "" && err == nil {
+	if bearer_token, err := utils.BearerFinder(consumerKey, consumerSecret); bearerToken == "" && err == nil {
 		bearerToken = bearer_token
 	}
 

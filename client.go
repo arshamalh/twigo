@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/arshamalh/twigo/utils"
 )
 
 const (
@@ -58,9 +60,9 @@ func (c *Client) get_request(route string, oauth_type OAuthType, params map[stri
 
 	parameters := url.Values{}
 	for param_name, param_value := range params {
-		if new_param_name := strings.Replace(param_name, "_", ".", 1); contains(endpoint_parameters, new_param_name) {
+		if new_param_name := strings.Replace(param_name, "_", ".", 1); utils.Contains(endpoint_parameters, new_param_name) {
 			param_name = new_param_name
-		} else if !contains(endpoint_parameters, param_name) {
+		} else if !utils.Contains(endpoint_parameters, param_name) {
 			fmt.Printf("it seems endpoint parameter '%s' is not supported", param_name)
 		}
 		switch param_valt := param_value.(type) {
