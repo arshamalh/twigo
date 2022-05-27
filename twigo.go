@@ -16,6 +16,11 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 			return nil, fmt.Errorf("consumer key, consumer secret, access token and access token secret must be provided")
 		}
 
+		userID := ""
+		if accessToken != "" {
+			userID = strings.Split(accessToken, "-")[0]
+		}
+
 		return &Client{
 			nil,
 			consumerKey,
@@ -24,8 +29,8 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 			accessTokenSecret,
 			bearerToken,
 			true,
-			"",
-			OAuth_Default,
+			userID,
+			OAuth_2,
 		}, nil
 	}
 
@@ -62,4 +67,18 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		userID,
 		OAuth_Default,
 	}, err
+}
+
+func NewBearerOnlyClient(bearerToken string) (*Client, error) {
+	return &Client{
+		nil,
+		"",
+		"",
+		"",
+		"",
+		bearerToken,
+		true,
+		"",
+		OAuth_2,
+	}, nil
 }
