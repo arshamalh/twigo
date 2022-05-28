@@ -9,6 +9,11 @@ import (
 	"github.com/arshamalh/twigo/entities"
 )
 
+type CallerData struct {
+	ID     string
+	Params map[string]interface{}
+}
+
 // *** Response Entities *** //
 type TweetResponse struct {
 	Data       entities.Tweet

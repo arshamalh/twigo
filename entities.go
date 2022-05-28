@@ -97,9 +97,3 @@ type List struct {
 	OwnerID       string    `json:"owner_id,omitempty"`
 	Description   string    `json:"description,omitempty"`
 }
-
-// *** Request struct *** //
-type CallerData struct {
-	ID     string
-	Params map[string]interface{}
-}
