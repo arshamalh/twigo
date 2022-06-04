@@ -11,7 +11,7 @@ import (
 
 type CallerData struct {
 	ID     string
-	Params map[string]interface{}
+	Params Map
 }
 
 // *** Response Entities *** //
@@ -37,7 +37,7 @@ type TweetsResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, map[string]interface{}) (*TweetsResponse, error)
+	Caller     func(string, Map) (*TweetsResponse, error)
 }
 
 func (r *TweetsResponse) Parse(raw_response *http.Response) (*TweetsResponse, error) {
@@ -62,7 +62,7 @@ type BookmarkedTweetsResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(map[string]interface{}) (*BookmarkedTweetsResponse, error)
+	Caller     func(Map) (*BookmarkedTweetsResponse, error)
 }
 
 func (r *BookmarkedTweetsResponse) Parse(raw_response *http.Response) (*BookmarkedTweetsResponse, error) {
@@ -102,7 +102,7 @@ type UsersResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, map[string]interface{}) (*UsersResponse, error)
+	Caller     func(string, Map) (*UsersResponse, error)
 }
 
 func (r *UsersResponse) Parse(raw_response *http.Response) (*UsersResponse, error) {
@@ -127,7 +127,7 @@ type MutedUsersResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(map[string]interface{}) (*MutedUsersResponse, error)
+	Caller     func(Map) (*MutedUsersResponse, error)
 }
 
 func (r *MutedUsersResponse) Parse(raw_response *http.Response) (*MutedUsersResponse, error) {
@@ -197,7 +197,7 @@ type ListsResponse struct {
 	Meta       MetaEntity
 	RateLimits RateLimits
 	CallerData CallerData
-	Caller     func(string, map[string]interface{}) (*ListsResponse, error)
+	Caller     func(string, Map) (*ListsResponse, error)
 }
 
 func (r *ListsResponse) Parse(raw_response *http.Response) (*ListsResponse, error) {

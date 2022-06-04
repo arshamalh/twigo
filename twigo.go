@@ -34,8 +34,12 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		}, nil
 	}
 
-	if bearer_token, err := utils.BearerFinder(consumerKey, consumerSecret); bearerToken == "" && err == nil {
-		bearerToken = bearer_token
+	if bearerToken == "" {
+		if bearer_token, err := utils.BearerFinder(consumerKey, consumerSecret); err == nil {
+			bearerToken = bearer_token
+		} else {
+			return nil, err
+		}
 	}
 
 	userID := strings.Split(accessToken, "-")[0]
