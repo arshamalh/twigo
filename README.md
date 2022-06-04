@@ -23,16 +23,16 @@ package main
 
 import "github.com/arshamalh/twigo"
 
-twigo.NewClient(
-    "ConsumerKey",
-    "ConsumerSecret",
-    "AccessToken",
-    "AccessTokenSecret",
-    // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory.
-    // We'll find bearer token automatically if it's not specified.
-    // Also, you can use twigo.BearerFinder() function.
-    "BearerToken",
-)
+twigo.NewClient((&twigo.Config{
+  ConsumerKey:    "ConsumerKey",
+	ConsumerSecret: "ConsumerSecret",
+	AccessToken:    "AccessToken",
+	AccessSecret:   "AccessTokenSecret",
+  // Both of "bearer token" or "four other keys (ConsumerKey, ...)" is not mandatory.
+  // We'll find bearer token automatically if it's not specified.
+  // Also, you can use twigo.utils.BearerFinder() function.
+	BearerToken:    "BearerToken",
+}))
 ```
 
 And use any function you need, for example, get a tweet like this:
