@@ -1,15 +1,18 @@
-package twigo
+package utils
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // Does an array of strings contain an especial string?
-func contains(arrayOfStrings []string, string_item string) bool {
+func Contains(arrayOfStrings []string, string_item string) bool {
 	for _, val := range arrayOfStrings {
 		if val == string_item {
 			return true
@@ -57,4 +60,36 @@ func BearerFinder(ConsumerKey, ConsumerSecret string) (string, error) {
 	}
 
 	return bearer_token.AccessToken, nil
+}
+
+func QueryValue(params []string) string {
+	if len(params) == 0 {
+		return ""
+	}
+
+	return strings.Join(params, ",")
+}
+
+func QueryMaker(params map[string]interface{}, endpoint_parameters []string) string {
+	parameters := url.Values{}
+	for param_name, param_value := range params {
+		if new_param_name := strings.Replace(param_name, "_", ".", 1); Contains(endpoint_parameters, new_param_name) {
+			param_name = new_param_name
+		} else if !Contains(endpoint_parameters, param_name) {
+			fmt.Printf("it seems endpoint parameter '%s' is not supported", param_name)
+		}
+		switch param_valt := param_value.(type) {
+		case int:
+			parameters.Add(param_name, strconv.Itoa(param_valt))
+		case string:
+			parameters.Add(param_name, param_valt)
+		case []string:
+			parameters.Add(param_name, strings.Join(param_valt, ","))
+		case time.Time:
+			parameters.Add(param_name, param_valt.Format(time.RFC3339))
+		default:
+			fmt.Printf("%s with value of %s is not supported, please contact us", param_name, param_value)
+		}
+	}
+	return parameters.Encode()
 }

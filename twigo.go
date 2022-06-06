@@ -4,40 +4,58 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/arshamalh/twigo/utils"
 	"github.com/mrjones/oauth"
 )
 
-func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bearerToken string) (*Client, error) {
-	keys_exists := consumerKey != "" && consumerSecret != "" && accessToken != "" && accessTokenSecret != ""
+type Config struct {
+	ConsumerKey    string
+	ConsumerSecret string
+	AccessToken    string
+	AccessSecret   string
+	BearerToken    string
+}
+
+func NewClient(config *Config) (*Client, error) {
+	keys_exists := config.ConsumerKey != "" && config.ConsumerSecret != "" && config.AccessToken != "" && config.AccessSecret == ""
 
 	if !keys_exists {
-		if bearerToken == "" {
+		if config.BearerToken == "" {
 			return nil, fmt.Errorf("consumer key, consumer secret, access token and access token secret must be provided")
+		}
+
+		userID := ""
+		if config.AccessToken != "" {
+			userID = strings.Split(config.AccessToken, "-")[0]
 		}
 
 		return &Client{
 			nil,
-			consumerKey,
-			consumerSecret,
-			accessToken,
-			accessTokenSecret,
-			bearerToken,
+			config.ConsumerKey,
+			config.ConsumerSecret,
+			config.AccessToken,
+			config.AccessSecret,
+			config.BearerToken,
 			true,
-			"",
-			OAuth_Default,
+			userID,
+			OAuth_2,
 		}, nil
 	}
 
-	if bearer_token, err := BearerFinder(consumerKey, consumerSecret); bearerToken == "" && err == nil {
-		bearerToken = bearer_token
+	if config.BearerToken == "" {
+		if bearer_token, err := utils.BearerFinder(config.ConsumerKey, config.ConsumerSecret); err == nil {
+			config.BearerToken = bearer_token
+		} else {
+			return nil, err
+		}
 	}
 
-	userID := strings.Split(accessToken, "-")[0]
+	userID := strings.Split(config.AccessToken, "-")[0]
 
 	// TODO: I'm authenticating here, but Do I need to authenticate every once in a while?
 	consumer := oauth.NewConsumer(
-		consumerKey,
-		consumerSecret,
+		config.ConsumerKey,
+		config.ConsumerSecret,
 		oauth.ServiceProvider{
 			RequestTokenUrl:   "https://api.twitter.com/oauth/request_token",
 			AuthorizeTokenUrl: "https://api.twitter.com/oauth/authorize",
@@ -45,20 +63,34 @@ func NewClient(consumerKey, consumerSecret, accessToken, accessTokenSecret, bear
 		})
 
 	t := oauth.AccessToken{
-		Token:  accessToken,
-		Secret: accessTokenSecret,
+		Token:  config.AccessToken,
+		Secret: config.AccessSecret,
 	}
 
 	authorizedClient, err := consumer.MakeHttpClient(&t)
 	return &Client{
 		authorizedClient,
-		consumerKey,
-		consumerSecret,
-		accessToken,
-		accessTokenSecret,
-		bearerToken,
+		config.ConsumerKey,
+		config.ConsumerSecret,
+		config.AccessToken,
+		config.AccessSecret,
+		config.BearerToken,
 		false,
 		userID,
 		OAuth_Default,
 	}, err
+}
+
+func NewBearerOnlyClient(bearerToken string) (*Client, error) {
+	return &Client{
+		nil,
+		"",
+		"",
+		"",
+		"",
+		bearerToken,
+		true,
+		"",
+		OAuth_2,
+	}, nil
 }

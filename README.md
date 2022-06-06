@@ -23,16 +23,16 @@ package main
 
 import "github.com/arshamalh/twigo"
 
-twigo.NewClient(
-    "ConsumerKey",
-    "ConsumerSecret",
-    "AccessToken",
-    "AccessTokenSecret",
-    // You can use bearer token or four other keys (ConsumerKey, ...), both is not mandatory.
-    // We'll find bearer token automatically if it's not specified.
-    // Also, you can use twigo.BearerFinder() function.
-    "BearerToken",
-)
+twigo.NewClient((&twigo.Config{
+  ConsumerKey:    "ConsumerKey",
+	ConsumerSecret: "ConsumerSecret",
+	AccessToken:    "AccessToken",
+	AccessSecret:   "AccessTokenSecret",
+  // Both of "bearer token" or "four other keys (ConsumerKey, ...)" is not mandatory.
+  // We'll find bearer token automatically if it's not specified.
+  // Also, you can use twigo.utils.BearerFinder() function.
+	BearerToken:    "BearerToken",
+}))
 ```
 
 And use any function you need, for example, get a tweet like this:
@@ -82,7 +82,7 @@ You can simpy read RateLimits attribute on the Response!
 Passing some extra fields and params:
 
 ```go
-fields := map[string]interface{}{"tweet.fields": []string{"author_id", "created_at", "public_metrics"}}
+fields := twigo.Map{"tweet.fields": []string{"author_id", "created_at", "public_metrics"}}
 response, _ := client.GetTweet(tweet_id, fields)
 fmt.Printf("%#v\n", response)
 tweet := response.Data
@@ -118,7 +118,7 @@ You can get Liking users: (users who liked a tweet)
 ```go
 response, err := client.GetLikingUsers(
   "1431751228145426438", 
-  map[string]interface{}{
+  twigo.Map{
     "max_results": 5,
   })
 
@@ -175,7 +175,7 @@ Return all tweets a user have written in the last 30 minutes.
 
 ```go
 start_time := time.Now().UTC().Add(-30 * time.Minute)
-params := map[string]interface{}{"max_results": 5, "start_time": start_time}
+params := twigo.Map{"max_results": 5, "start_time": start_time}
 user_tweets, _ := bot.GetUserTweets(user_id, params)
 if len(user_tweets.Data) != 0 {
   fmt.Printf("<<Some tweets found>>")
