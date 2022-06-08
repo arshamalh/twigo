@@ -1,6 +1,7 @@
 package twigo
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,6 +21,17 @@ type MetaEntity struct {
 type ErrorEntity struct {
 	Parameters map[string]interface{} `json:"parameters"`
 	Message    string                 `json:"message"`
+}
+
+type SpecialError struct {
+	Title  string `json:"title"`
+	Type   string `json:"type"`
+	Status int    `json:"status"`
+	Detail string `json:"detail"`
+}
+
+func (e *SpecialError) Error() error {
+	return fmt.Errorf("%s - %d - %s - %s", e.Title, e.Status, e.Type, e.Detail)
 }
 
 type IncludesEntity struct {

@@ -72,7 +72,14 @@ func (c *Client) get_request(route string, oauth_type OAuthType, params Map, end
 
 		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
 		client := http.Client{}
-		return client.Do(request)
+		resp, err := client.Do(request)
+		if resp.StatusCode != 200 {
+			err := SpecialError{}
+			json.NewDecoder(resp.Body).Decode(&err)
+			defer resp.Body.Close()
+			return nil, err.Error()
+		}
+		return resp, err
 	}
 }
 
