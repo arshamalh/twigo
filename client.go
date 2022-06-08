@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/arshamalh/twigo/utils"
 )
@@ -1118,6 +1119,7 @@ func (c *Client) GetUserByUsername(username string, params Map) (*UserResponse, 
 	endpoint_parameters := []string{
 		"expansions", "tweet.fields", "user.fields",
 	}
+	username = strings.Replace(username, "@", "", 1)
 	route := fmt.Sprintf("users/by/username/%s", username)
 	response, err := c.get_request(route, c.oauth_type, params, endpoint_parameters)
 	if err != nil {
@@ -1153,6 +1155,8 @@ func (c *Client) GetUsersByIDs(user_ids []string, params Map) (*UsersResponse, e
 
 // Returns a variety of information about one or more users specified by
 // the requested usernames.
+//
+// usernames should not have @ at the beginning
 //
 // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-by
 func (c *Client) GetUsersByUsernames(usernames []string, params Map) (*UsersResponse, error) {
