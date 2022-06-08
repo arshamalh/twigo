@@ -25,13 +25,13 @@ import "github.com/arshamalh/twigo"
 
 twigo.NewClient((&twigo.Config{
   ConsumerKey:    "ConsumerKey",
-	ConsumerSecret: "ConsumerSecret",
-	AccessToken:    "AccessToken",
-	AccessSecret:   "AccessTokenSecret",
+  ConsumerSecret: "ConsumerSecret",
+  AccessToken:    "AccessToken",
+  AccessSecret:   "AccessTokenSecret",
   // Both of "bearer token" or "four other keys (ConsumerKey, ...)" is not mandatory.
   // We'll find bearer token automatically if it's not specified.
   // Also, you can use twigo.utils.BearerFinder() function.
-	BearerToken:    "BearerToken",
+  BearerToken:    "BearerToken",
 }))
 ```
 
