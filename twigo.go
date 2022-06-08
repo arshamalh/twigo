@@ -1,7 +1,6 @@
 package twigo
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/arshamalh/twigo/utils"
@@ -21,7 +20,11 @@ func NewClient(config *Config) (*Client, error) {
 
 	if !keys_exists {
 		if config.BearerToken == "" {
-			return nil, fmt.Errorf("consumer key, consumer secret, access token and access token secret must be provided")
+			if bearer_token, err := utils.BearerFinder(config.ConsumerKey, config.ConsumerSecret); err == nil {
+				config.BearerToken = bearer_token
+			} else {
+				return nil, err
+			}
 		}
 
 		userID := ""
@@ -31,23 +34,15 @@ func NewClient(config *Config) (*Client, error) {
 
 		return &Client{
 			nil,
-			config.ConsumerKey,
-			config.ConsumerSecret,
-			config.AccessToken,
-			config.AccessSecret,
+			"",
+			"",
+			"",
+			"",
 			config.BearerToken,
 			true,
 			userID,
 			OAuth_2,
 		}, nil
-	}
-
-	if config.BearerToken == "" {
-		if bearer_token, err := utils.BearerFinder(config.ConsumerKey, config.ConsumerSecret); err == nil {
-			config.BearerToken = bearer_token
-		} else {
-			return nil, err
-		}
 	}
 
 	userID := strings.Split(config.AccessToken, "-")[0]
