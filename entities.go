@@ -68,6 +68,7 @@ type Place struct {
 type Media struct {
 	MediaKey         string         `json:"media_key"`
 	Type             string         `json:"type"`
+	Url              string         `json:"url"`
 	DurationMs       int            `json:"duration_ms,omitempty"`
 	Height           int            `json:"height,omitempty"`
 	NonPublicMetrics map[string]int `json:"non_public_metrics,omitempty"`
